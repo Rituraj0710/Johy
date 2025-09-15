@@ -70,6 +70,15 @@ const Navbar = () => {
                     <li>
                       <Link href={"/sale-deed"}>{"Sale Deed Form"}</Link>
                     </li>
+                    <li>
+                      <Link href={"/trust-deed"}>{"Trust Deed Form"}</Link>
+                    </li>
+                    <li>
+                      <Link href={"/property-registration"}>{"Property Registration Form"}</Link>
+                    </li>
+                    <li>
+                      <Link href={"/property-sale-certificate"}>{"Property Sale Certificate Generator"}</Link>
+                    </li>
                   </ul>
                 </div>
 
@@ -229,6 +238,42 @@ const Navbar = () => {
                         }
                       >
                         {"Sale Deed"}
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href={"/trust-deed"}
+                        onClick={() =>
+                          (document.getElementById(
+                            "navbar-drawer"
+                          ).checked = false)
+                        }
+                      >
+                        {"Trust Deed Form"}
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href={"/property-registration"}
+                        onClick={() =>
+                          (document.getElementById(
+                            "navbar-drawer"
+                          ).checked = false)
+                        }
+                      >
+                        {"Property Registration Form"}
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href={"/property-sale-certificate"}
+                        onClick={() =>
+                          (document.getElementById(
+                            "navbar-drawer"
+                          ).checked = false)
+                        }
+                      >
+                        {"Property Sale Certificate Generator"}
                       </Link>
                     </li>
                   </ul>
