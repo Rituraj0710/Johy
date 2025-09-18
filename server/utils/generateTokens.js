@@ -4,7 +4,7 @@ const generateTokens = async (user) => {
   try {
     const payload = {_id: user._id, roles: user.roles};
     // Generate access token with expiration time 
-    const accessTokenExp = Math.floor(Date.now() / 1000) + 100; // Set expiration to 10 seconds from now
+    const accessTokenExp = Math.floor(Date.now() / 1000) + (15 * 60); // Set expiration to 15 minutes from now
     const accessToken = jwt.sign({...payload, exp: accessTokenExp},
       process.env.JWT_ACCESS_TOKEN_SECRECT_KEY,
     );

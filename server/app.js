@@ -66,8 +66,11 @@
 import express, { json } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import helmet from "helmet";
 import connectDB from "./config/connectdb.js";
 import passport from "passport";
+import logger from "./config/logger.js";
+import { generalLimiter } from "./config/rateLimits.js";
 // routes
 import userRoutes from "./routes/userRoutes.js";
 import agentRoutes from "./routes/agentRoutes.js";
@@ -85,14 +88,30 @@ const app = express();
 const port = process.env.PORT || 4001;
 const DATABASE_URL = process.env.DATABASE_URL;
 
-// cors policy
+// Security middleware - Helmet for security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https:"],
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Disable for file uploads
+}));
+
+// CORS policy
 const allowedOrigin = process.env.FRONTEND_HOST || 'http://localhost:3000';
 app.use(cors({
   origin: allowedOrigin,
   credentials: true,
 }));
 
-// database connection 
+// Rate limiting
+app.use(generalLimiter);
+
+// Database connection 
 connectDB(DATABASE_URL);
 
 // JSON - Increased limit for file uploads
@@ -102,8 +121,14 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Passport Middleware
 app.use(passport.initialize());
 
-// cookieParser 
+// Cookie parser 
 app.use(cookieParser());
+
+// Request logging middleware
+app.use((req, res, next) => {
+  logger.http(`${req.method} ${req.url} - ${req.ip}`);
+  next();
+});
 
 // Load Routes
 app.use("/api/user", userRoutes);
@@ -132,7 +157,14 @@ app.get('/health', (req, res) => {
 
 // Global error handler
 app.use((error, req, res, next) => {
-  console.error('Global Error Handler:', error);
+  // Log error with Winston
+  logger.error(`Global Error Handler: ${error.message}`, {
+    error: error.stack,
+    url: req.url,
+    method: req.method,
+    ip: req.ip,
+    userAgent: req.get('User-Agent')
+  });
 
   if (error instanceof multer.MulterError) {
     if (error.code === 'LIMIT_FILE_SIZE') {
@@ -164,6 +196,9 @@ app.use('/api', (req, res) => {
 });
 
 app.listen(port, () => {
+  logger.info(`Server is running on port ${port}`);
+  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.info(`Frontend host: ${allowedOrigin}`);
   console.log(`Server is running on port ${port}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`Frontend host: ${allowedOrigin}`);

@@ -7,6 +7,10 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_API_BASE: process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4000',
   },
+  // Ensure environment variables are available at build time
+  publicRuntimeConfig: {
+    apiBase: process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4000',
+  },
   webpack: (config, { isServer }) => {
     // Fix for webpack chunk loading issues
     if (!isServer) {

@@ -7,7 +7,8 @@ import setTokenCookies from "../utils/setTokenCookies.js";
 import refreshAccessToken from "../utils/refreshAccessToken.js";
 import userRefreshTokenModel from "../models/UserRefreshToken.js";
 import jwt from "jsonwebtoken"
-import transporter from "../config/emailConfig.js"; 
+import transporter from "../config/emailConfig.js";
+import logger from "../config/logger.js"; 
 class UserController {
   // User Registration
   static userRegistration = async (req,res) =>{
@@ -35,6 +36,11 @@ class UserController {
       // Check if email already exists
       const existingUser = await UserModel.findOne({email});
       if(existingUser){
+        logger.warn(`Registration attempt with existing email: ${email}`, {
+          ip: req.ip,
+          userAgent: req.get('User-Agent'),
+          email: email
+        });
         return res.status(409).json({status: "failed", message: "Email already exists"});
       }
 
@@ -47,6 +53,14 @@ class UserController {
       await newUser.save();
 
       sendEmailVerificationOTP(req, newUser);
+
+      // Log successful registration
+      logger.info(`User registration successful: ${email}`, {
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        userId: newUser._id,
+        email: email
+      });
 
       // send success response
       res.status(201).json({
@@ -146,6 +160,11 @@ class UserController {
 
       // Check if user exists
       if(!user){
+        logger.warn(`Login attempt with non-existent email: ${email}`, {
+          ip: req.ip,
+          userAgent: req.get('User-Agent'),
+          email: email
+        });
         return res.status(400).json({status:"failed", message:"Invalid email or password"});
       }
 
@@ -161,6 +180,12 @@ class UserController {
       // Compare password / Check Password
       const isMatch =  await bcrypt.compare(password, user.password);
       if(!isMatch){
+        logger.warn(`Failed login attempt - incorrect password: ${email}`, {
+          ip: req.ip,
+          userAgent: req.get('User-Agent'),
+          email: email,
+          userId: user._id
+        });
         return res.status(401).json({status:"failed", message:"Invalid email or password"}); 
       }
 
@@ -172,6 +197,15 @@ class UserController {
 
       // Set Cookies
       setTokenCookies(res, accessToken, refreshToken, accessTokenExp, refreshTokenExp, role)
+
+      // Log successful login
+      logger.info(`User login successful: ${email}`, {
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        userId: user._id,
+        email: email,
+        role: role
+      });
 
       // Send Success Response with Tokens
       res.status(200).json({

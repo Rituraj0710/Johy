@@ -1,56 +1,56 @@
-// import express from "express";
-// import multer from "multer";
-// import path from "path";
-// import fs from "fs";
+// ...existing code...
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 // import passport from "passport";
-// import accessTokenAutoRefresh from "../middlewares/accessTokenAutoRefresh.js";
-// import setAuthHeader from "../middlewares/setAuthHeader.js";
-// import TrustDeedController from "../controllers/trustDeedController.js";
+import accessTokenAutoRefresh from "../middlewares/accessTokenAutoRefresh.js";
+import setAuthHeader from "../middlewares/setAuthHeader.js";
+// ...existing code...
 
-// const router = express.Router();
+// ...existing code...
 
-// // Create upload directory for trust deeds
-// const uploadRoot = path.join(process.cwd(), "uploads", "trustdeed");
-// fs.mkdirSync(uploadRoot, { recursive: true });
+// Create upload directory for trust deeds
+const uploadRoot = path.join(process.cwd(), "uploads", "trustdeed");
+fs.mkdirSync(uploadRoot, { recursive: true });
 
-// // Configure multer for file uploads
-// const storage = multer.diskStorage({
-//   destination: function(req, file, cb) {
-//     cb(null, uploadRoot);
-//   },
-//   filename: function(req, file, cb) {
-//     const ts = Date.now();
-//     const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
-//     cb(null, `${ts}_${safe}`);
-//   }
-// });
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    cb(null, uploadRoot);
+  },
+  filename: function(req, file, cb) {
+    const ts = Date.now();
+    const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g, "_");
+    cb(null, `${ts}_${safe}`);
+  }
+});
 
-// const upload = multer({ 
-//   storage,
-//   limits: {
-//     fileSize: 10 * 1024 * 1024, // 10MB limit
-//     files: 20 // Maximum 20 files
-//   },
-//   fileFilter: (req, file, cb) => {
-//     // Allow common document and image types
-//     const allowedTypes = [
-//       'application/pdf',
-//       'image/jpeg',
-//       'image/jpg',
-//       'image/png',
-//       'image/gif',
-//       'application/msword',
-//       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-//       'text/plain'
-//     ];
+const upload = multer({ 
+  storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+    files: 20 // Maximum 20 files
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow common document and image types
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/jpg',
+      'image/png',
+      'image/gif',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain'
+    ];
 
-//     if (allowedTypes.includes(file.mimetype)) {
-//       cb(null, true);
-//     } else {
-//       cb(new Error('Invalid file type. Only PDF, images, and documents are allowed.'), false);
-//     }
-//   }
-// });
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only PDF, images, and documents are allowed.'), false);
+    }
+  }
+});
 
 // // POST /api/trust-deed - Create a new trust deed
 // router.post(
@@ -118,15 +118,8 @@
 
 
 import express from "express";
-import {
-  createTrustDeed,
-  getAllTrustDeeds,
-  getTrustDeedById,
-  updateTrustDeedStatus,
-  deleteTrustDeed,
-  getTrustDeedStats,
-  upload,
-} from "../controllers/trustDeedController.js";
+import passport from "passport";
+import TrustDeedController from "../controllers/trustDeedController.js";
 
 const router = express.Router();
 
@@ -148,11 +141,16 @@ const uploadFields = [
   { name: "witnessPhoto_2", maxCount: 1 },
 ];
 
-router.post("/", upload.fields(uploadFields), createTrustDeed);
-router.get("/", getAllTrustDeeds);
-router.get("/stats", getTrustDeedStats);
-router.get("/:id", getTrustDeedById);
-router.put("/:id/status", updateTrustDeedStatus);
-router.delete("/:id", deleteTrustDeed);
+// Apply authentication middleware to all routes
+router.use(passport.authenticate('jwt', { session: false }));
+router.use(accessTokenAutoRefresh);
+router.use(setAuthHeader);
+
+router.post("/", upload.fields(uploadFields), TrustDeedController.create);
+router.get("/", TrustDeedController.getAll);
+router.get("/stats", TrustDeedController.getStats);
+router.get("/:id", TrustDeedController.getById);
+router.put("/:id/status", TrustDeedController.updateStatus);
+router.delete("/:id", TrustDeedController.delete);
 
 export default router;

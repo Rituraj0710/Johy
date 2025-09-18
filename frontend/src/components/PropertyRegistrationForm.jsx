@@ -375,11 +375,14 @@ import * as Yup from 'yup';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useRouter } from 'next/navigation';
+import { FormWorkflowProvider, useFormWorkflow } from './FormWorkflow/FormWorkflowProvider';
+import FormWorkflow from './FormWorkflow/FormWorkflow';
 
-const PropertyRegistrationForm = () => {
+const PropertyRegistrationFormContent = () => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
+  const { formData: workflowFormData } = useFormWorkflow();
   const [allRegistrations, setAllRegistrations] = useState([]);
   const [selectedRegistration, setSelectedRegistration] = useState(null);
   const [registrationId, setRegistrationId] = useState('');
@@ -389,21 +392,21 @@ const PropertyRegistrationForm = () => {
 
   // Initial form values
   const initialValues = {
-    seller_name: '',
-    seller_father_name: '',
-    seller_address: '',
-    seller_aadhaar: '',
-    seller_mobile: '',
-    buyer_name: '',
-    buyer_father_name: '',
-    buyer_address: '',
-    buyer_aadhaar: '',
-    buyer_mobile: '',
-    property_address: '',
-    property_type: '',
-    area_sqm: '',
-    sale_price: '',
-    registration_date: '',
+    seller_name: workflowFormData?.seller_name || '',
+    seller_father_name: workflowFormData?.seller_father_name || '',
+    seller_address: workflowFormData?.seller_address || '',
+    seller_aadhaar: workflowFormData?.seller_aadhaar || '',
+    seller_mobile: workflowFormData?.seller_mobile || '',
+    buyer_name: workflowFormData?.buyer_name || '',
+    buyer_father_name: workflowFormData?.buyer_father_name || '',
+    buyer_address: workflowFormData?.buyer_address || '',
+    buyer_aadhaar: workflowFormData?.buyer_aadhaar || '',
+    buyer_mobile: workflowFormData?.buyer_mobile || '',
+    property_address: workflowFormData?.property_address || '',
+    property_type: workflowFormData?.property_type || '',
+    area_sqm: workflowFormData?.area_sqm || '',
+    sale_price: workflowFormData?.sale_price || '',
+    registration_date: workflowFormData?.registration_date || '',
   };
 
   // Validation schema
@@ -818,6 +821,25 @@ const PropertyRegistrationForm = () => {
         theme="light"
       />
     </div>
+  );
+};
+
+const PropertyRegistrationForm = () => {
+  return (
+    <FormWorkflowProvider formType="property-registration">
+      <FormWorkflow 
+        formTitle="Property Registration"
+        formType="property-registration"
+        fields={[
+          { name: 'seller_name', label: 'Seller Name' },
+          { name: 'buyer_name', label: 'Buyer Name' },
+          { name: 'property_address', label: 'Property Address' },
+          { name: 'property_value', label: 'Property Value' },
+        ]}
+      >
+        <PropertyRegistrationFormContent />
+      </FormWorkflow>
+    </FormWorkflowProvider>
   );
 };
 

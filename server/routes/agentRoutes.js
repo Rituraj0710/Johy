@@ -9,14 +9,15 @@ import ContactController from "../controllers/contactUsController.js";
 import optionalAuthMiddleware from "../middlewares/contactUs.js";
 import AgentController from "../controllers/agentController.js";
 import setAuthHeader from "../middlewares/setAuthHeader.js";
+import { authLimiter, passwordResetLimiter, emailVerificationLimiter } from "../config/rateLimits.js";
 
-// Public Routes
-router.post("/agent-register", AgentController.agentRegistration);
-router.post("/agent-verify-email", UserController.verifyEmail);
-router.post("/agent-login", AgentController.agentLogin);
+// Public Routes with rate limiting
+router.post("/agent-register", authLimiter, AgentController.agentRegistration);
+router.post("/agent-verify-email", emailVerificationLimiter, UserController.verifyEmail);
+router.post("/agent-login", authLimiter, AgentController.agentLogin);
 router.post("/refresh-token", UserController.getNewAccessToken);
-router.post("/reset-password-link", AgentController.sendAgentPasswordResetEmail);
-router.post("/reset-password/:id/:token", AgentController.agentPasswordReset);
+router.post("/reset-password-link", passwordResetLimiter, AgentController.sendAgentPasswordResetEmail);
+router.post("/reset-password/:id/:token", passwordResetLimiter, AgentController.agentPasswordReset);
 
 
 // Procted Routes

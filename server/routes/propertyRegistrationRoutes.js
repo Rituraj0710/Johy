@@ -180,17 +180,24 @@
 // export default router;
 
 import express from 'express';
-import * as propertyRegistrationController from '../controllers/propertyRegistrationController.js';
+import passport from 'passport';
+import accessTokenAutoRefresh from "../middlewares/accessTokenAutoRefresh.js";
+import setAuthHeader from "../middlewares/setAuthHeader.js";
+import PropertyRegistrationController from "../controllers/propertyRegistrationController.js";
 
 const router = express.Router();
 
-// POST: Create a new property registration
-router.post('/', propertyRegistrationController.createPropertyRegistration);
+// Apply authentication middleware to all routes
+router.use(passport.authenticate('jwt', { session: false }));
+router.use(accessTokenAutoRefresh);
+router.use(setAuthHeader);
 
-// GET: Fetch all property registrations
-router.get('/', propertyRegistrationController.getAllPropertyRegistrations);
-
-// GET: Fetch a single property registration by ID
-router.get('/:id', propertyRegistrationController.getPropertyRegistrationById);
+// Routes
+router.post("/", PropertyRegistrationController.create);
+router.get("/", PropertyRegistrationController.getAll);
+router.get("/stats", PropertyRegistrationController.getStats);
+router.get("/:id", PropertyRegistrationController.getById);
+router.put("/:id/status", PropertyRegistrationController.updateStatus);
+router.delete("/:id", PropertyRegistrationController.delete);
 
 export default router;

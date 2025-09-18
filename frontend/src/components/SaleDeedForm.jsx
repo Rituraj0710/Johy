@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import "../app/sale-deed/saledeed.css";
+import { FormWorkflowProvider, useFormWorkflow } from './FormWorkflow/FormWorkflowProvider';
+import FormWorkflow from './FormWorkflow/FormWorkflow';
 
 // Constants
 const STAMP_DUTY_RATE = 0.07;
@@ -60,26 +62,28 @@ const convertToMeters = (value, unit) => {
   }
 };
 
-export default function SaleDeedForm() {
+const SaleDeedFormContent = () => {
+  const { goToPreview, formData: workflowFormData } = useFormWorkflow();
+  
   // Form state
   const [formData, setFormData] = useState({
-    documentType: '',
-    propertyType: '',
-    plotType: '',
-    salePrice: '',
-    circleRateAmount: '',
-    areaInputType: 'total',
-    area: '',
-    areaUnit: 'sq_meters',
-    propertyLength: '',
-    propertyWidth: '',
-    dimUnit: 'meters',
-    buildupType: 'single-shop',
-    numShops: 1,
-    numFloorsMall: 1,
-    numFloorsMulti: 1,
-    superAreaMulti: '',
-    coveredAreaMulti: '',
+    documentType: workflowFormData?.documentType || '',
+    propertyType: workflowFormData?.propertyType || '',
+    plotType: workflowFormData?.plotType || '',
+    salePrice: workflowFormData?.salePrice || '',
+    circleRateAmount: workflowFormData?.circleRateAmount || '',
+    areaInputType: workflowFormData?.areaInputType || 'total',
+    area: workflowFormData?.area || '',
+    areaUnit: workflowFormData?.areaUnit || 'sq_meters',
+    propertyLength: workflowFormData?.propertyLength || '',
+    propertyWidth: workflowFormData?.propertyWidth || '',
+    dimUnit: workflowFormData?.dimUnit || 'meters',
+    buildupType: workflowFormData?.buildupType || 'single-shop',
+    numShops: workflowFormData?.numShops || 1,
+    numFloorsMall: workflowFormData?.numFloorsMall || 1,
+    numFloorsMulti: workflowFormData?.numFloorsMulti || 1,
+    superAreaMulti: workflowFormData?.superAreaMulti || '',
+    coveredAreaMulti: workflowFormData?.coveredAreaMulti || '',
     nalkoopCount: 0,
     borewellCount: 0,
     state: '',
@@ -107,7 +111,7 @@ export default function SaleDeedForm() {
   });
 
   // Dynamic arrays
-  const [sellers, setSellers] = useState([{
+  const [sellers, setSellers] = useState(workflowFormData?.sellers || [{
     name: '',
     relation: '',
     address: '',
@@ -116,7 +120,7 @@ export default function SaleDeedForm() {
     idNo: ''
   }]);
 
-  const [buyers, setBuyers] = useState([{
+  const [buyers, setBuyers] = useState(workflowFormData?.buyers || [{
     name: '',
     relation: '',
     address: '',
@@ -125,18 +129,18 @@ export default function SaleDeedForm() {
     idNo: ''
   }]);
 
-  const [witnesses, setWitnesses] = useState([
+  const [witnesses, setWitnesses] = useState(workflowFormData?.witnesses || [
     { name: '', relation: '', address: '', mobile: '' },
     { name: '', relation: '', address: '', mobile: '' }
   ]);
 
-  const [rooms, setRooms] = useState([]);
-  const [trees, setTrees] = useState([]);
-  const [shops, setShops] = useState([]);
-  const [mallFloors, setMallFloors] = useState([]);
-  const [facilities, setFacilities] = useState([]);
-  const [dynamicFacilities, setDynamicFacilities] = useState([]);
-  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [rooms, setRooms] = useState(workflowFormData?.rooms || []);
+  const [trees, setTrees] = useState(workflowFormData?.trees || []);
+  const [shops, setShops] = useState(workflowFormData?.shops || []);
+  const [mallFloors, setMallFloors] = useState(workflowFormData?.mallFloors || []);
+  const [facilities, setFacilities] = useState(workflowFormData?.facilities || []);
+  const [dynamicFacilities, setDynamicFacilities] = useState(workflowFormData?.dynamicFacilities || []);
+  const [uploadedFiles, setUploadedFiles] = useState(workflowFormData?.uploadedFiles || []);
 
   // UI state
   const [showCalculations, setShowCalculations] = useState(false);
@@ -496,6 +500,30 @@ export default function SaleDeedForm() {
 
   // Save data to local storage and backend
   const handleSaveData = async () => {
+    const results = calculateFormValues();
+    if (!results) return;
+
+    // Instead of submitting directly, go to preview
+    const dataToSave = {
+      ...formData,
+      sellers,
+      buyers,
+      witnesses,
+      rooms,
+      trees,
+      shops,
+      mallFloors,
+      facilities,
+      dynamicFacilities,
+      calculations: results,
+      amount: 1500, // Base amount for sale deed
+      formType: 'sale-deed'
+    };
+    
+    goToPreview(dataToSave);
+  };
+
+  const handleSaveDataDirect = async () => {
     const results = calculateFormValues();
     if (!results) return;
 
@@ -2126,8 +2154,28 @@ export default function SaleDeedForm() {
       </div>
     </div>
   );
-}
+};
 
+const SaleDeedForm = () => {
+  return (
+    <FormWorkflowProvider formType="sale-deed">
+      <FormWorkflow 
+        formTitle="Sale Deed"
+        formType="sale-deed"
+        fields={[
+          { name: 'documentType', label: 'Document Type' },
+          { name: 'propertyType', label: 'Property Type' },
+          { name: 'salePrice', label: 'Sale Price' },
+          { name: 'area', label: 'Area' },
+        ]}
+      >
+        <SaleDeedFormContent />
+      </FormWorkflow>
+    </FormWorkflowProvider>
+  );
+};
+
+export default SaleDeedForm;
 
 // "use client";
 // import React, { useState, useEffect, useRef } from "react";

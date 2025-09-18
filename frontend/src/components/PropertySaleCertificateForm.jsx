@@ -1984,6 +1984,8 @@ import * as Yup from 'yup';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useRouter } from 'next/navigation';
+import { FormWorkflowProvider, useFormWorkflow } from './FormWorkflow/FormWorkflowProvider';
+import FormWorkflow from './FormWorkflow/FormWorkflow';
 
 // Utility hook for managing dynamic arrays
 const useDynamicArray = (initialItem) => {
@@ -2940,19 +2942,20 @@ const PropertyDetailsForm = ({ values, setFieldValue, purchasers, setPurchasers,
 };
 
 // Main Component
-const PropertySaleCertificateForm = () => {
+const PropertySaleCertificateFormContent = () => {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [purchasers, setPurchasers] = useState([]);
-  const [witnesses, setWitnesses] = useState([]);
-  const [payments, setPayments] = useState([]);
-  const [floors, setFloors] = useState([]);
+  const { formData: workflowFormData } = useFormWorkflow();
+  const [purchasers, setPurchasers] = useState(workflowFormData?.purchasers || []);
+  const [witnesses, setWitnesses] = useState(workflowFormData?.witnesses || []);
+  const [payments, setPayments] = useState(workflowFormData?.payments || []);
+  const [floors, setFloors] = useState(workflowFormData?.floors || []);
   const [allCertificates, setAllCertificates] = useState([]);
   const [selectedCert, setSelectedCert] = useState(null);
   const [certId, setCertId] = useState('');
 
   const initialValues = {
-    bank_select: '', bank_other: '', bank_reg_off: '', bank_head_off: '', bank_pan: '', bank_post: '',
+    bank_select: workflowFormData?.bank_select || '', bank_other: workflowFormData?.bank_other || '', bank_reg_off: workflowFormData?.bank_reg_off || '', bank_head_off: workflowFormData?.bank_head_off || '', bank_pan: workflowFormData?.bank_pan || '', bank_post: workflowFormData?.bank_post || '',
     bank_rep_title: 'श्री', bank_rep_name: '', bank_rep_rel: 'पुत्र', bank_rep_father_name: '', bank_rep_occ: '',
     bank_rep_mobile: '', bank_rep_email: '', bank_rep_addr: '', bank_rep_photo: null,
     ack_amount: '', ack_amount_words: '', previous_owner: '', acquisition_mode: '', bank_power: '',
@@ -3370,6 +3373,25 @@ const PropertySaleCertificateForm = () => {
         theme="light"
       />
     </div>
+  );
+};
+
+const PropertySaleCertificateForm = () => {
+  return (
+    <FormWorkflowProvider formType="property-sale-certificate">
+      <FormWorkflow 
+        formTitle="Property Sale Certificate"
+        formType="property-sale-certificate"
+        fields={[
+          { name: 'bank_select', label: 'Bank Selection' },
+          { name: 'bank_rep_name', label: 'Bank Representative Name' },
+          { name: 'ack_amount', label: 'Acknowledgment Amount' },
+          { name: 'prop_address', label: 'Property Address' },
+        ]}
+      >
+        <PropertySaleCertificateFormContent />
+      </FormWorkflow>
+    </FormWorkflowProvider>
   );
 };
 

@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import { useFormik } from 'formik'
 import {registerSchema} from "@/validations/schemas"
 import { useCreateUserMutation } from '@/lib/services/auth';
+import FormInput from '@/components/ui/FormInput';
+import SubmitButton from '@/components/ui/SubmitButton';
 const initialValues = {
   name: "",
   phone: "",
@@ -21,7 +23,7 @@ const Register = () => {
   const [serverSuccessMessage, setServerSuccessMessage] = useState('');
   const [createUser] = useCreateUserMutation()
 
-  const {values,errors, handleChange, handleSubmit} = useFormik({
+  const {values,errors, touched, handleChange, handleBlur, handleSubmit} = useFormik({
     initialValues,
     validationSchema: registerSchema,
     onSubmit: async(values, action) => {
@@ -53,33 +55,74 @@ const Register = () => {
     <div className='flex items-center justify-center h-screen bg-slate-400'>
       <div className='w-full max-w-md p-8 bg-white rounded-lg shadow-lg'>
         <h2 className='text-2xl font-bold mb-6 text-center'>Register</h2>
-        <form onSubmit={handleSubmit}>
-          <div className='mb-4'>
-            <label htmlFor="name" className='block font-medium mb-2'>Name</label>
-            <input type="text" id='name' name='name' value={values.name} onChange={handleChange} className='w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2' placeholder='Enter your name'/>
-            {errors.name && <div className='text-sm text-red-500 px-2'>{errors.name}</div>}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <FormInput
+            label="Full Name"
+            type="text"
+            name="name"
+            value={values.name}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            placeholder="Enter your full name"
+            error={touched.name && errors.name}
+            required
+          />
 
-            <label htmlFor="phone" className='block font-medium mb-2'>Phone</label>
-            <input type="number" id='phone' name='phone' value={values.phone} onChange={handleChange} className='w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2' placeholder='Enter your phone number'/>
-            {errors.phone && <div className='text-sm text-red-500 px-2'>{errors.phone}</div>}
+          <FormInput
+            label="Phone Number"
+            type="tel"
+            name="phone"
+            value={values.phone}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            placeholder="Enter your phone number"
+            error={touched.phone && errors.phone}
+            required
+          />
 
-            <label htmlFor="email" className='block font-medium mb-2'>Email</label>
-            <input type="email" id='email' name='email' value={values.email} onChange={handleChange} className='w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2' placeholder='Enter your Email'/>
-            {errors.email && <div className='text-sm text-red-500 px-2'>{errors.email}</div>}
+          <FormInput
+            label="Email Address"
+            type="email"
+            name="email"
+            value={values.email}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            placeholder="Enter your email address"
+            error={touched.email && errors.email}
+            required
+          />
 
-            <label htmlFor="password" className='block font-medium mb-2'>Password</label>
-            <input type="password" id='password' name='password' value={values.password} onChange={handleChange} className='w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2' placeholder='Enter your Password'/>
-            {errors.password && <div className='text-sm text-red-500 px-2'>{errors.password}</div>}
+          <FormInput
+            label="Password"
+            type="password"
+            name="password"
+            value={values.password}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            placeholder="Create a strong password"
+            error={touched.password && errors.password}
+            required
+          />
 
-            <label htmlFor="password_confirmation" className='block font-medium mb-2'>Confirm Password</label>
-            <input type="password" id='password_confirmation' name='password_confirmation' value={values.password_confirmation} onChange={handleChange} className='w-full border-gray-300 rounded-md shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2' placeholder='Confirm Password'/>
-            {errors.password_confirmation && <div className='text-sm text-red-500 px-2'>{errors.password_confirmation}</div>}
+          <FormInput
+            label="Confirm Password"
+            type="password"
+            name="password_confirmation"
+            value={values.password_confirmation}
+            onChange={handleChange}
+            onBlur={handleBlur}
+            placeholder="Confirm your password"
+            error={touched.password_confirmation && errors.password_confirmation}
+            required
+          />
 
-          </div>
-
-          <button type='submit' className='w-full bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring focus:ring-indigo-200 focus:ring-opacity-50 p-2 disabled:bg-gray-400'disabled={loading}>
-            Register
-          </button>
+          <SubmitButton
+            loading={loading}
+            loadingText="Creating account..."
+            variant="indigo"
+          >
+            Create Account
+          </SubmitButton>
         </form>
 
         <p className='text-sm text-gray-600 p-1'>Already an User? <Link href="/account/user-login" className='text-indigo-500 hover:text-indigo-600 transition duration-300 ease-in-out '>Login</Link> </p>

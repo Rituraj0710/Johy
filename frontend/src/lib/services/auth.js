@@ -1,9 +1,13 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { getApiBaseUrl } from "../utils/env.js";
 
 // Define a service using a base URL and expected endpoints
 export const authApi = createApi({
   reducerPath: "authApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:4000/api/user/" }),
+  baseQuery: fetchBaseQuery({ 
+    baseUrl: `${getApiBaseUrl()}/api/user/`,
+    credentials: 'include'
+  }),
   endpoints: (builder) => ({
     createUser: builder.mutation({
       query: (user) => {
@@ -127,7 +131,10 @@ export const authApi = createApi({
 // Define a service for agent using a base URL and expected endpoints
 export const agentApi = createApi({
   reducerPath: "agentApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "http://localhost:4000/api/agent/" }),
+  baseQuery: fetchBaseQuery({ 
+    baseUrl: `${getApiBaseUrl()}/api/agent/`,
+    credentials: 'include'
+  }),
   endpoints: (builder) => ({
     createAgent: builder.mutation({
       query: (user) => {

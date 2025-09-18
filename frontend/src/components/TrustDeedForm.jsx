@@ -1,7 +1,12 @@
-// 'use client'
-// import React, { useState, useCallback } from 'react';
-// import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik';
-// import * as Yup from 'yup';
+'use client'
+import React, { useState, useCallback } from 'react';
+import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik';
+import * as Yup from 'yup';
+import { FormWorkflowProvider, useFormWorkflow } from './FormWorkflow/FormWorkflowProvider';
+import FormWorkflow from './FormWorkflow/FormWorkflow';
+import FormPreview from './FormWorkflow/FormPreview';
+import ProcessingState from './FormWorkflow/ProcessingState';
+import PaymentGateway from './FormWorkflow/PaymentGateway';
 
 // // Validation schema
 // const validationSchema = Yup.object({
@@ -209,7 +214,7 @@
 //         }
 //       });
 
-//       const response = await fetch('http://localhost:4000/api/trust-deed', {
+//       const response = await fetch('${process.env.NEXT_PUBLIC_API_BASE}/api/trust-deed', {
 //         method: 'POST',
 //         body: formData,
 //         credentials: 'include'
@@ -647,11 +652,6 @@
 
 // export default TrustDeedForm;
 
-'use client'
-import React, { useState, useCallback } from 'react';
-import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-
 // Validation schema
 const validationSchema = Yup.object({
   trustName: Yup.string().required('ट्रस्ट का नाम आवश्यक है').max(100, 'अधिकतम 100 अक्षर'),
@@ -753,16 +753,17 @@ const convertToIndianWords = (num) => {
   return result.trim() + ' रुपये';
 };
 
-const TrustDeedForm = () => {
+const TrustDeedFormContent = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
+  const { goToPreview, formData: workflowFormData } = useFormWorkflow();
 
   const initialValues = {
-    trustName: '',
-    trustAddress: '',
-    startingAmount_number: '',
-    startingAmount_words: '',
-    trustees: [
+    trustName: workflowFormData?.trustName || '',
+    trustAddress: workflowFormData?.trustAddress || '',
+    startingAmount_number: workflowFormData?.startingAmount_number || '',
+    startingAmount_words: workflowFormData?.startingAmount_words || '',
+    trustees: workflowFormData?.trustees || [
       {
         salutation: 'श्री',
         position: '',
@@ -776,12 +777,12 @@ const TrustDeedForm = () => {
         photoFile: null,
       },
     ],
-    functionalDomains: [''],
-    purposes: [],
-    otherPurposes: [''],
-    terms: [],
-    otherTerms: [''],
-    witnesses: [
+    functionalDomains: workflowFormData?.functionalDomains || [''],
+    purposes: workflowFormData?.purposes || [],
+    otherPurposes: workflowFormData?.otherPurposes || [''],
+    terms: workflowFormData?.terms || [],
+    otherTerms: workflowFormData?.otherTerms || [''],
+    witnesses: workflowFormData?.witnesses || [
       {
         name: '',
         relation: '',
@@ -818,6 +819,71 @@ const TrustDeedForm = () => {
   );
 
   const onSubmit = async (values, { setSubmitting, resetForm }) => {
+    // Basic validation before preview
+    const errors = [];
+    
+    // Check if at least one trustee has required fields
+    const hasValidTrustee = values.trustees?.some(trustee => 
+      trustee.name && trustee.address && trustee.mobile
+    );
+    
+    if (!hasValidTrustee) {
+      errors.push('At least one trustee must have name, address, and mobile number filled');
+    }
+    
+    // Check if at least one witness has required fields
+    const hasValidWitness = values.witnesses?.some(witness => 
+      witness.name && witness.address && witness.mobile
+    );
+    
+    if (!hasValidWitness) {
+      errors.push('At least one witness must have name, address, and mobile number filled');
+    }
+    
+    if (errors.length > 0) {
+      // Show user-friendly error message
+      const errorMessage = 'Please fix the following errors before proceeding:\n\n' + errors.join('\n');
+      
+      // Create a more user-friendly error display
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg z-50 max-w-md';
+      errorDiv.innerHTML = `
+        <div class="flex items-center">
+          <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+          </svg>
+          <div>
+            <strong class="font-bold">Validation Error!</strong>
+            <div class="text-sm mt-1">${errors.join('<br>')}</div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(errorDiv);
+      
+      // Remove after 8 seconds
+      setTimeout(() => {
+        if (errorDiv.parentNode) {
+          errorDiv.parentNode.removeChild(errorDiv);
+        }
+      }, 8000);
+      
+      setSubmitting(false);
+      return;
+    }
+    
+    // Instead of submitting directly, go to preview
+    const formData = {
+      ...values,
+      amount: 1000, // Base amount for trust deed
+      formType: 'trust-deed'
+    };
+    
+    goToPreview(formData);
+    setSubmitting(false);
+  };
+
+  const onSubmitDirect = async (values, { setSubmitting, resetForm }) => {
     setIsSubmitting(true);
     setSubmitStatus(null);
     console.log('Form submission started:', values);
@@ -1582,6 +1648,25 @@ const TrustDeedForm = () => {
         </div>
       </div>
     </div>
+  );
+};
+
+const TrustDeedForm = () => {
+  return (
+    <FormWorkflowProvider formType="trust-deed">
+      <FormWorkflow 
+        formTitle="Trust Deed"
+        formType="trust-deed"
+        fields={[
+          { name: 'trustName', label: 'ट्रस्ट का नाम' },
+          { name: 'trustAddress', label: 'ट्रस्ट का पता' },
+          { name: 'startingAmount_number', label: 'प्रारंभिक राशि (संख्या में)' },
+          { name: 'startingAmount_words', label: 'प्रारंभिक राशि (शब्दों में)' },
+        ]}
+      >
+        <TrustDeedFormContent />
+      </FormWorkflow>
+    </FormWorkflowProvider>
   );
 };
 

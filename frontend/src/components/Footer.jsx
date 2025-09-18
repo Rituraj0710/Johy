@@ -1,4 +1,5 @@
 import React from 'react'
+import Link from 'next/link'
 import logo from '../../public/logo_svg.svg'
 const FooterPage = () => {
   return (
@@ -6,23 +7,24 @@ const FooterPage = () => {
     <footer className="footer bg-slate-600 text-base-content p-10">
   <nav>
     <h6 className="footer-title text-white">Services</h6>
-    <a className="link link-hover text-white">Branding</a>
-    <a className="link link-hover text-white">Design</a>
-    <a className="link link-hover text-white">Marketing</a>
-    <a className="link link-hover text-white">Advertisement</a>
+    <Link href="/trust-deed" className="link link-hover text-white">Trust Deed</Link>
+    <Link href="/sale-deed" className="link link-hover text-white">Sale Deed</Link>
+    <Link href="/property-registration" className="link link-hover text-white">Property Registration</Link>
+    <Link href="/will-deed" className="link link-hover text-white">Will Deed</Link>
   </nav>
   <nav>
     <h6 className="footer-title text-white">Company</h6>
-    <a className="link link-hover text-white">About us</a>
-    <a className="link link-hover text-white">Contact</a>
-    <a className="link link-hover text-white">Jobs</a>
-    <a className="link link-hover text-white">Press kit</a>
+    <Link href="/about" className="link link-hover text-white">About us</Link>
+    <Link href="/contact" className="link link-hover text-white">Contact</Link>
+    <Link href="/account/user-login" className="link link-hover text-white">User Login</Link>
+    <Link href="/account/agent-login" className="link link-hover text-white">Agent Login</Link>
   </nav>
   <nav>
     <h6 className="footer-title text-white">Legal</h6>
-    <a className="link link-hover text-white">Terms of use</a>
-    <a className="link link-hover text-white">Privacy policy</a>
-    <a className="link link-hover text-white">Cookie policy</a>
+    <Link href="/terms-of-service" className="link link-hover text-white">Terms of Service</Link>
+    <Link href="/privacy-policy" className="link link-hover text-white">Privacy Policy</Link>
+    <Link href="/disclaimer" className="link link-hover text-white">Disclaimer</Link>
+    <Link href="/contact" className="link link-hover text-white">Support</Link>
   </nav>
 </footer>
 <footer className="footer bg-slate-600 text-base-content border-base-300 border-t px-10 py-4">
