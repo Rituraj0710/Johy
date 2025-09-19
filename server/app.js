@@ -79,6 +79,8 @@ import saleDeedRoutes from "./routes/saleDeedRoutes.js";
 import trustDeedRoutes from "./routes/trustDeedRoutes.js";
 import propertyRegistrationRoutes from "./routes/propertyRegistrationRoutes.js";
 import propertySaleCertificateRoutes from "./routes/propertySaleCertificateRoutes.js";
+import powerOfAttorneyRoutes from "./routes/powerOfAttorneyRoutes.js";
+import adoptionDeedRoutes from "./routes/adoptionDeedRoutes.js";
 import dotenv from "dotenv";
 import './config/passport-jwt-strategy.js'
 dotenv.config()
@@ -138,6 +140,8 @@ app.use("/api/sale-deed", saleDeedRoutes);
 app.use("/api/trust-deed", trustDeedRoutes);
 app.use("/api/property-registration", propertyRegistrationRoutes);
 app.use("/api/property-sale-certificate", propertySaleCertificateRoutes);
+app.use("/api/power-of-attorney", powerOfAttorneyRoutes);
+app.use("/api/adoption-deed", adoptionDeedRoutes);
 
 // Static for uploads
 import path from "path";

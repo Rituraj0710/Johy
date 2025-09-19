@@ -79,6 +79,12 @@ const Navbar = () => {
                     <li>
                       <Link href={"/property-sale-certificate"}>{"Property Sale Certificate Generator"}</Link>
                     </li>
+                    <li>
+                      <Link href={"/power-of-attorney"}>{"Power of Attorney Form"}</Link>
+                    </li>
+                    <li>
+                      <Link href={"/adoption-deed"}>{"Adoption Deed Form"}</Link>
+                    </li>
                   </ul>
                 </div>
 
@@ -274,6 +280,30 @@ const Navbar = () => {
                         }
                       >
                         {"Property Sale Certificate Generator"}
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href={"/power-of-attorney"}
+                        onClick={() =>
+                          (document.getElementById(
+                            "navbar-drawer"
+                          ).checked = false)
+                        }
+                      >
+                        {"Power of Attorney Form"}
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href={"/adoption-deed"}
+                        onClick={() =>
+                          (document.getElementById(
+                            "navbar-drawer"
+                          ).checked = false)
+                        }
+                      >
+                        {"Adoption Deed Form"}
                       </Link>
                     </li>
                   </ul>
