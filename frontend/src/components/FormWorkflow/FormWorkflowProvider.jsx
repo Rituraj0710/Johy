@@ -49,47 +49,60 @@ export const FormWorkflowProvider = ({ children, formType }) => {
 
   const submitForm = useCallback(async (endpoint, data) => {
     try {
-      goToProcessing('Submitting your form...');
+      goToProcessing('Validating your form...');
       
-      // Actually submit to backend
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.status === 'success') {
-        goToProcessing('Form submitted successfully! Redirecting to payment...');
-        
-        // Simulate processing delay
-        setTimeout(() => {
-          goToPayment({
-            formId: result.data?.id || `temp-${Date.now()}`,
-            amount: result.data?.amount || data.amount || 1000,
-            formType: formType,
-            formData: data,
-            ...result.data
-          });
-        }, 2000);
-      } else {
-        // Show user-friendly error message
-        const errorMessage = result.message || 'Submission failed';
-        goToProcessing(`❌ ${errorMessage}. Please check your form and try again.`);
-        
-        // Reset to form after showing error
-        setTimeout(() => {
-          resetWorkflow();
-        }, 4000);
-        return;
+      // Validate form data before submission
+      if (!data) {
+        throw new Error('No form data provided');
       }
+
+      // Basic validation based on form type
+      switch (formType) {
+        case 'trust-deed':
+          if (!data.trustees || data.trustees.length === 0) {
+            throw new Error('At least one trustee is required');
+          }
+          if (!data.trustName) {
+            throw new Error('Trust name is required');
+          }
+          if (!data.trustAddress) {
+            throw new Error('Trust address is required');
+          }
+          break;
+        case 'sale-deed':
+          if (!data.sellers || data.sellers.length === 0) {
+            throw new Error('At least one seller is required');
+          }
+          if (!data.buyers || data.buyers.length === 0) {
+            throw new Error('At least one buyer is required');
+          }
+          break;
+        case 'will-deed':
+          if (!data.testator || !data.testator.name) {
+            throw new Error('Testator information is required');
+          }
+          if (!data.beneficiaries || data.beneficiaries.length === 0) {
+            throw new Error('At least one beneficiary is required');
+          }
+          break;
+      }
+
+      goToProcessing('Form validated! Redirecting to payment...');
+      
+      // Go directly to payment without backend submission
+      // Backend submission will happen during payment processing
+      setTimeout(() => {
+        goToPayment({
+          formId: `temp-${Date.now()}`,
+          amount: data.amount || 1000,
+          formType: formType,
+          formData: data
+        });
+      }, 1500);
+      
     } catch (error) {
-      console.error('Form submission error:', error);
-      goToProcessing(`❌ Network Error: ${error.message}. Please check your connection and try again.`);
+      console.error('Form validation error:', error);
+      goToProcessing(`❌ ${error.message}. Please check your form and try again.`);
       
       // Reset to form after error
       setTimeout(() => {

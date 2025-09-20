@@ -1,0 +1,82 @@
+{
+  "form": {
+    "title": "Form",
+    "submit": "Submit",
+    "reset": "Reset",
+    "save": "Save",
+    "cancel": "Cancel",
+    "next": "Next",
+    "previous": "Previous",
+    "required": "Required",
+    "optional": "Optional"
+  },
+  "trustDeed": {
+    "title": "Trust Deed Form",
+    "trustDetails": "Trust Details",
+    "trustName": "Trust Name",
+    "trustAddress": "Trust Address",
+    "startingAmount": "Starting Amount",
+    "amountInNumbers": "Amount (in numbers)",
+    "amountInWords": "Amount (in words)",
+    "trustees": "Trustee/Member Details",
+    "functionalDomains": "Trust's Functional Areas",
+    "purposes": "Trust's Objectives",
+    "terms": "Important Rules and Terms",
+    "witnesses": "Witness Details",
+    "addTrustee": "Add Trustee/Member",
+    "addDomain": "Add More Areas",
+    "addPurpose": "Add More Objectives",
+    "addTerm": "Add More Points",
+    "remove": "Remove",
+    "salutation": "Mr./Mrs.",
+    "position": "Position",
+    "name": "Name",
+    "relation": "Father/Husband Name",
+    "address": "Address",
+    "mobile": "Mobile Number",
+    "idType": "ID Type",
+    "idNumber": "ID Number",
+    "idCard": "ID Card Upload",
+    "photo": "Photo Upload"
+  },
+  "saleDeed": {
+    "title": "Sale Deed Form",
+    "propertyDetails": "Property Details",
+    "sellers": "Seller Details",
+    "buyers": "Buyer Details",
+    "addSeller": "Add Seller",
+    "addBuyer": "Add Buyer"
+  },
+  "willDeed": {
+    "title": "Will Deed Form",
+    "testatorDetails": "Testator Details",
+    "beneficiaries": "Beneficiary Details",
+    "addBeneficiary": "Add Beneficiary"
+  },
+  "propertyRegistration": {
+    "title": "Property Registration Form",
+    "propertyInfo": "Property Information",
+    "ownerDetails": "Owner Details"
+  },
+  "powerOfAttorney": {
+    "title": "Power of Attorney Form",
+    "principalDetails": "Principal Details",
+    "agentDetails": "Agent Details"
+  },
+  "adoptionDeed": {
+    "title": "Adoption Deed Form",
+    "adoptiveParents": "Adoptive Parents",
+    "childDetails": "Child Details"
+  },
+  "common": {
+    "select": "Select",
+    "enter": "Enter",
+    "upload": "Upload",
+    "choose": "Choose",
+    "yes": "Yes",
+    "no": "No",
+    "male": "Male",
+    "female": "Female",
+    "other": "Other"
+  }
+}

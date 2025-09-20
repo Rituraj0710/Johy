@@ -2,8 +2,13 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import CameraCapture from "./CameraCapture";
+import LanguageSelectorDropdown from "./LanguageSelectorDropdown";
+import ClientOnly from "./ClientOnly";
+import { useTranslation } from "react-i18next";
 
 const AdoptionDeedForm = () => {
+  const { t } = useTranslation();
+  
   // Form state
   const [formData, setFormData] = useState({
     // Registration Details
@@ -396,6 +401,18 @@ const AdoptionDeedForm = () => {
     <div className="min-h-screen bg-gray-100 py-8">
       <div className="max-w-6xl mx-auto px-4">
         <div className="bg-white rounded-lg shadow-lg p-6">
+          {/* Language Selector */}
+          <div className="flex justify-end mb-4">
+            <ClientOnly fallback={
+              <div className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm">
+                <span className="text-lg">🌐</span>
+                <span className="hidden sm:inline">Loading...</span>
+              </div>
+            }>
+              <LanguageSelectorDropdown />
+            </ClientOnly>
+          </div>
+          
           <h1 className="text-3xl font-bold text-center text-gray-800 mb-8 border-b-4 border-blue-600 pb-4">
             दत्तक ग्रहण पत्र (Adoption Deed)
           </h1>

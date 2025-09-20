@@ -7,6 +7,9 @@ import FormWorkflow from './FormWorkflow/FormWorkflow';
 import FormPreview from './FormWorkflow/FormPreview';
 import ProcessingState from './FormWorkflow/ProcessingState';
 import PaymentGateway from './FormWorkflow/PaymentGateway';
+import LanguageSelectorDropdown from './LanguageSelectorDropdown';
+import ClientOnly from './ClientOnly';
+import { useTranslation } from 'react-i18next';
 
 // // Validation schema
 // const validationSchema = Yup.object({
@@ -757,6 +760,7 @@ const TrustDeedFormContent = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
   const { goToPreview, formData: workflowFormData } = useFormWorkflow();
+  const { t } = useTranslation();
 
   const initialValues = {
     trustName: workflowFormData?.trustName || '',
@@ -1007,8 +1011,20 @@ const TrustDeedFormContent = () => {
     <div className="w-full min-h-screen bg-gray-50 py-4">
       <div className="w-full px-2 sm:px-4 lg:px-6">
         <div className="bg-white rounded-lg shadow-lg p-4 lg:p-6">
+          {/* Language Selector */}
+          <div className="flex justify-end mb-4">
+            <ClientOnly fallback={
+              <div className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm">
+                <span className="text-lg">🌐</span>
+                <span className="hidden sm:inline">Loading...</span>
+              </div>
+            }>
+              <LanguageSelectorDropdown />
+            </ClientOnly>
+          </div>
+          
           <h1 className="text-xl lg:text-2xl font-bold text-center mb-6 text-gray-800 border-b-2 border-blue-500 pb-3">
-            ट्रस्ट डीड फॉर्म
+            {t('trustDeed.title')}
           </h1>
 
           {submitStatus && (
@@ -1033,18 +1049,18 @@ const TrustDeedFormContent = () => {
                 {/* Trust Details Section */}
                 <div className="bg-gray-50 p-3 lg:p-4 rounded-lg">
                   <h3 className="text-base lg:text-lg font-semibold mb-3 text-gray-700">
-                    ट्रस्ट का विवरण
+                    {t('trustDeed.trustDetails')}
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 lg:gap-4">
                     <div className="sm:col-span-1 xl:col-span-1">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        ट्रस्ट का नाम *
+                        {t('trustDeed.trustName')} *
                       </label>
                       <Field
                         type="text"
                         name="trustName"
                         className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        placeholder="ट्रस्ट का नाम दर्ज करें"
+                        placeholder={t('trustDeed.placeholders.trustName')}
                       />
                       <ErrorMessage
                         name="trustName"
@@ -1054,7 +1070,7 @@ const TrustDeedFormContent = () => {
                     </div>
                     <div className="sm:col-span-1 xl:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        ट्रस्ट का पता *
+                        {t('trustDeed.trustAddress')} *
                       </label>
                       <Field
                         as="textarea"

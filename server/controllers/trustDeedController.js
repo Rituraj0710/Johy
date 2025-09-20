@@ -30,15 +30,82 @@ class TrustDeedController {
         trustName,
         trustAddress,
         startingAmount_number,
-        startingAmount_words,
-        trustees = [],
-        functionalDomains = [],
-        purposes = [],
-        otherPurposes = [],
-        terms = [],
-        otherTerms = [],
-        witnesses = []
+        startingAmount_words
       } = sanitizedData;
+
+      // Parse trustees from FormData format
+      const trustees = [];
+      let trusteeIndex = 1;
+      while (sanitizedData[`trusteeName_${trusteeIndex}`]) {
+        const trustee = {
+          salutation: sanitizedData[`trusteeSalutation_${trusteeIndex}`] || 'श्री',
+          position: sanitizedData[`trusteePosition_${trusteeIndex}`],
+          name: sanitizedData[`trusteeName_${trusteeIndex}`],
+          relation: sanitizedData[`trusteeRelation_${trusteeIndex}`],
+          address: sanitizedData[`trusteeAddress_${trusteeIndex}`],
+          mobile: sanitizedData[`trusteeMobile_${trusteeIndex}`],
+          idType: sanitizedData[`trusteeIdType_${trusteeIndex}`] || 'आधार कार्ड',
+          idNumber: sanitizedData[`trusteeIdNumber_${trusteeIndex}`],
+          idCard: req.files?.[`trusteeIdCard_${trusteeIndex}`]?.[0]?.filename || null,
+          photo: req.files?.[`trusteePhoto_${trusteeIndex}`]?.[0]?.filename || null
+        };
+        trustees.push(trustee);
+        trusteeIndex++;
+      }
+
+      // Parse functional domains
+      const functionalDomains = [];
+      let domainIndex = 1;
+      while (sanitizedData[`functionalDomain_${domainIndex}`]) {
+        if (sanitizedData[`functionalDomain_${domainIndex}`].trim()) {
+          functionalDomains.push(sanitizedData[`functionalDomain_${domainIndex}`]);
+        }
+        domainIndex++;
+      }
+
+      // Parse purposes (both predefined and custom)
+      const purposes = Array.isArray(sanitizedData.purpose) ? sanitizedData.purpose : 
+                      (sanitizedData.purpose ? [sanitizedData.purpose] : []);
+      
+      const otherPurposes = [];
+      let purposeIndex = 1;
+      while (sanitizedData[`otherPurpose_${purposeIndex}`]) {
+        if (sanitizedData[`otherPurpose_${purposeIndex}`].trim()) {
+          otherPurposes.push(sanitizedData[`otherPurpose_${purposeIndex}`]);
+        }
+        purposeIndex++;
+      }
+
+      // Parse terms (both predefined and custom)
+      const terms = Array.isArray(sanitizedData.terms) ? sanitizedData.terms : 
+                   (sanitizedData.terms ? [sanitizedData.terms] : []);
+      
+      const otherTerms = [];
+      let termIndex = 1;
+      while (sanitizedData[`otherTerm_${termIndex}`]) {
+        if (sanitizedData[`otherTerm_${termIndex}`].trim()) {
+          otherTerms.push(sanitizedData[`otherTerm_${termIndex}`]);
+        }
+        termIndex++;
+      }
+
+      // Parse witnesses
+      const witnesses = [];
+      let witnessIndex = 1;
+      while (sanitizedData[`witnessName_${witnessIndex}`]) {
+        const witness = {
+          name: sanitizedData[`witnessName_${witnessIndex}`],
+          relation: sanitizedData[`witnessRelation_${witnessIndex}`],
+          address: sanitizedData[`witnessAddress_${witnessIndex}`],
+          mobile: sanitizedData[`witnessMobile_${witnessIndex}`],
+          idType: sanitizedData[`witnessIdType_${witnessIndex}`] || 'आधार कार्ड',
+          idNumber: sanitizedData[`witnessIdNumber_${witnessIndex}`],
+          idCard: req.files?.[`witnessIdCard_${witnessIndex}`]?.[0]?.filename || null,
+          photo: req.files?.[`witnessPhoto_${witnessIndex}`]?.[0]?.filename || null
+        };
+        witnesses.push(witness);
+        witnessIndex++;
+      }
 
       // Validation
       if (!trustName || !trustAddress || !startingAmount_number || !startingAmount_words) {
@@ -95,8 +162,11 @@ class TrustDeedController {
         otherTerms,
         witnesses,
         createdBy: req.user?.id,
-        status: 'draft',
-        amount: 1000 // Base amount for trust deed
+        meta: {
+          status: 'draft',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
       };
 
       const trustDeed = new TrustDeed(trustDeedData);
@@ -114,8 +184,8 @@ class TrustDeedController {
         data: {
           id: trustDeed._id,
           trustName: trustDeed.trustName,
-          status: trustDeed.status,
-          amount: trustDeed.amount
+          status: trustDeed.meta.status,
+          createdAt: trustDeed.meta.createdAt
         }
       });
 

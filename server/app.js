@@ -67,6 +67,7 @@ import express, { json } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
+import multer from "multer";
 import connectDB from "./config/connectdb.js";
 import passport from "passport";
 import logger from "./config/logger.js";
@@ -81,6 +82,7 @@ import propertyRegistrationRoutes from "./routes/propertyRegistrationRoutes.js";
 import propertySaleCertificateRoutes from "./routes/propertySaleCertificateRoutes.js";
 import powerOfAttorneyRoutes from "./routes/powerOfAttorneyRoutes.js";
 import adoptionDeedRoutes from "./routes/adoptionDeedRoutes.js";
+import paymentRoutes from "./routes/paymentRoutesSimple.js";
 import dotenv from "dotenv";
 import './config/passport-jwt-strategy.js'
 dotenv.config()
@@ -133,6 +135,12 @@ app.use((req, res, next) => {
 });
 
 // Load Routes
+// Test payment route inline
+app.get("/api/payment/test", (req, res) => {
+  res.json({ status: 'success', message: 'Payment test route working' });
+});
+
+app.use("/api/payment", paymentRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/agent", agentRoutes);
 app.use("/api/will-deed", willDeedRoutes);
@@ -191,7 +199,7 @@ app.use((error, req, res, next) => {
   });
 });
 
-// Handle 404 for API routes
+// Handle 404 for API routes (moved to the very end)
 app.use('/api', (req, res) => {
   res.status(404).json({
     status: 'fail',
@@ -207,3 +215,5 @@ app.listen(port, () => {
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`Frontend host: ${allowedOrigin}`);
 });
+
+export default app;

@@ -2,8 +2,11 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import CameraCapture from "./CameraCapture";
+import LanguageSelector from "./LanguageSelector";
+import { useTranslation } from "../hooks/useTranslation";
 
 const PowerOfAttorneyForm = () => {
+  const { t } = useTranslation();
   const [currentLang, setCurrentLang] = useState('hi');
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({

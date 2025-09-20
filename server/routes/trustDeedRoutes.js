@@ -153,4 +153,7 @@ router.get("/:id", TrustDeedController.getById);
 router.put("/:id/status", TrustDeedController.updateStatus);
 router.delete("/:id", TrustDeedController.delete);
 
+// Payment initialization endpoint
+router.post("/payment/initialize", TrustDeedController.initializePayment);
+
 export default router;

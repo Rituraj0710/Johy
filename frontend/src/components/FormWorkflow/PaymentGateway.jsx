@@ -17,9 +17,9 @@ const PaymentGateway = () => {
     salt: 'eCwWELxi', // Your PayU salt
     amount: formData?.amount || 1000,
     productinfo: `${formType} Form Submission`,
-    firstname: formData?.name || 'User',
+    firstname: formData?.name || formData?.trustName || 'User',
     email: 'bonehookadvt01@gmail.com', // Your provided email
-    phone: formData?.phone || '9999999999',
+    phone: formData?.phone || formData?.mobile || '9999999999',
     surl: `${window.location.origin}/payment/success`,
     furl: `${window.location.origin}/payment/failure`,
     hash: '', // Will be calculated
@@ -36,30 +36,177 @@ const PaymentGateway = () => {
     return titles[formType] || 'Form';
   };
 
+  const validateFormData = () => {
+    if (!formData) {
+      throw new Error('No form data available');
+    }
+
+    // Validate based on form type
+    switch (formType) {
+      case 'trust-deed':
+        if (!formData.trustees || formData.trustees.length === 0) {
+          throw new Error('At least one trustee is required');
+        }
+        if (!formData.trustName) {
+          throw new Error('Trust name is required');
+        }
+        if (!formData.trustAddress) {
+          throw new Error('Trust address is required');
+        }
+        break;
+      case 'sale-deed':
+        if (!formData.sellers || formData.sellers.length === 0) {
+          throw new Error('At least one seller is required');
+        }
+        if (!formData.buyers || formData.buyers.length === 0) {
+          throw new Error('At least one buyer is required');
+        }
+        break;
+      case 'will-deed':
+        if (!formData.testator || !formData.testator.name) {
+          throw new Error('Testator information is required');
+        }
+        if (!formData.beneficiaries || formData.beneficiaries.length === 0) {
+          throw new Error('At least one beneficiary is required');
+        }
+        break;
+      default:
+        // Basic validation for other forms
+        if (!formData.name && !formData.trustName) {
+          throw new Error('Form data is incomplete');
+        }
+    }
+  };
+
+  const generatePayUHash = (data) => {
+    // This is a simplified hash generation
+    // In production, you should generate this on the backend for security
+    const crypto = require('crypto');
+    const hashString = `${payuConfig.key}|${data.txnid}|${data.amount}|${data.productinfo}|${data.firstname}|${data.email}|||||||||||${payuConfig.salt}`;
+    return crypto.createHash('sha512').update(hashString).digest('hex');
+  };
+
   const handlePayment = async () => {
     setIsProcessing(true);
     
     try {
-      // Simulate payment processing with longer timeout
-      await new Promise(resolve => setTimeout(resolve, 5000)); // Increased to 5 seconds
+      // Validate form data before payment
+      validateFormData();
       
-      // In real implementation, you would:
-      // 1. Generate PayU hash
-      // 2. Submit to PayU gateway
-      // 3. Handle response
+      // Generate transaction ID
+      const txnid = `TXN${Date.now()}`;
       
-      setPaymentStatus('success');
-      setIsProcessing(false);
+      // Prepare PayU data
+      const payuData = {
+        ...payuConfig,
+        txnid: txnid,
+        amount: payuConfig.amount,
+        hash: '', // Will be generated on backend
+        formData: formData // Include form data for backend processing
+      };
+
+      // Initialize payment with backend (mock response for now)
+      try {
+        const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4000';
+        const paymentResponse = await fetch(`${API_BASE}/api/trust-deed/payment/initialize`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            formType: formType,
+            formData: formData,
+            amount: payuConfig.amount,
+            userInfo: {
+              name: formData?.name || formData?.trustName,
+              email: 'bonehookadvt01@gmail.com',
+              phone: formData?.phone || formData?.mobile
+            }
+          }),
+        });
+
+        if (!paymentResponse.ok) {
+          throw new Error('Backend payment endpoint not available');
+        }
+
+        const paymentResult = await paymentResponse.json();
+      } catch (error) {
+        // Fallback to mock payment data if backend is not available
+        console.log('Using mock payment data:', error.message);
+        
+        const mockPaymentResult = {
+          status: 'success',
+          message: 'Payment initialized successfully',
+          data: {
+            key: 'gtKFFx',
+            txnid: `TXN${Date.now()}`,
+            amount: payuConfig.amount,
+            productinfo: `${formType} Form Submission`,
+            firstname: formData?.name || formData?.trustName || 'User',
+            email: 'bonehookadvt01@gmail.com',
+            phone: formData?.phone || formData?.mobile || '9999999999',
+            surl: `${window.location.origin}/payment/success`,
+            furl: `${window.location.origin}/payment/failure`,
+            hash: 'mock_hash_for_testing',
+            paymentUrl: 'https://test.payu.in/_payment'
+          }
+        };
+        
+        const paymentResult = mockPaymentResult;
+      }
       
-      // Redirect to success page after 5 seconds
-      setTimeout(() => {
-        window.location.href = '/payment/success';
-      }, 5000); // Increased to 5 seconds
+      // Now process payment
+      if (paymentMethod === 'payu') {
+        // For PayU Money, redirect to PayU gateway
+        const payuForm = document.createElement('form');
+        payuForm.method = 'POST';
+        payuForm.action = 'https://test.payu.in/_payment'; // Use test URL for development
+        
+        // Add PayU parameters from backend response
+        const payuParams = {
+          key: paymentResult.data.key,
+          txnid: paymentResult.data.txnid,
+          amount: paymentResult.data.amount,
+          productinfo: paymentResult.data.productinfo,
+          firstname: paymentResult.data.firstname,
+          email: paymentResult.data.email,
+          phone: paymentResult.data.phone,
+          surl: paymentResult.data.surl,
+          furl: paymentResult.data.furl,
+          hash: paymentResult.data.hash,
+          service_provider: 'payu_paisa'
+        };
+
+        Object.keys(payuParams).forEach(key => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = payuParams[key];
+          payuForm.appendChild(input);
+        });
+
+        document.body.appendChild(payuForm);
+        payuForm.submit();
+        document.body.removeChild(payuForm);
+      } else {
+        // For other payment methods, simulate processing
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        setPaymentStatus('success');
+        setIsProcessing(false);
+        
+        setTimeout(() => {
+          window.location.href = '/payment/success';
+        }, 3000);
+      }
       
     } catch (error) {
       console.error('Payment error:', error);
       setPaymentStatus('failed');
       setIsProcessing(false);
+      
+      // Show user-friendly error message
+      alert(`Payment Error: ${error.message}. Please check your form and try again.`);
     }
   };
 

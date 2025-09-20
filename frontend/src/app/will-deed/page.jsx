@@ -2,8 +2,12 @@
 import { useEffect, useState } from "react";
 import "./willdeed.css";
 import "./willdeed.js";
+import LanguageSelectorDropdown from "../../components/LanguageSelectorDropdown";
+import ClientOnly from "../../components/ClientOnly";
+import { useTranslation } from "react-i18next";
 
 export default function WillDeed() {
+  const { t } = useTranslation();
   const [willDeeds, setWillDeeds] = useState([]);
   const [stats, setStats] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -133,6 +137,14 @@ export default function WillDeed() {
           </p>
         </div>
         <div className="flex gap-2">
+          <ClientOnly fallback={
+            <div className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm">
+              <span className="text-lg">🌐</span>
+              <span className="hidden sm:inline">Loading...</span>
+            </div>
+          }>
+            <LanguageSelectorDropdown />
+          </ClientOnly>
           <button className="bg-blue-500 text-white px-4 py-2 rounded" onClick={() => window.saveDraft()}>
             💾 Save Draft
           </button>

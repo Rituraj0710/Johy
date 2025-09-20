@@ -1,0 +1,82 @@
+{
+  "form": {
+    "title": "फॉर्म",
+    "submit": "जमा करें",
+    "reset": "रीसेट करें",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "next": "अगला",
+    "previous": "पिछला",
+    "required": "आवश्यक",
+    "optional": "वैकल्पिक"
+  },
+  "trustDeed": {
+    "title": "ट्रस्ट डीड फॉर्म",
+    "trustDetails": "ट्रस्ट का विवरण",
+    "trustName": "ट्रस्ट का नाम",
+    "trustAddress": "ट्रस्ट का पता",
+    "startingAmount": "ट्रस्ट की प्रारंभिक राशि",
+    "amountInNumbers": "राशि (अंकों में)",
+    "amountInWords": "राशि (शब्दों में)",
+    "trustees": "ट्रस्टी/सदस्य का विवरण",
+    "functionalDomains": "ट्रस्ट का कार्य क्षेत्र",
+    "purposes": "ट्रस्ट के उद्देश्य",
+    "terms": "ट्रस्ट के महत्वपूर्ण नियम और शर्तें",
+    "witnesses": "गवाहों का विवरण",
+    "addTrustee": "ट्रस्टी/सदस्य जोड़ें",
+    "addDomain": "और क्षेत्र जोड़ें",
+    "addPurpose": "और उद्देश्य जोड़ें",
+    "addTerm": "और बिंदु जोड़ें",
+    "remove": "हटाएँ",
+    "salutation": "श्री/श्रीमती",
+    "position": "पद",
+    "name": "नाम",
+    "relation": "पिता/पति का नाम",
+    "address": "पता",
+    "mobile": "मोबाइल नंबर",
+    "idType": "पहचान पत्र का प्रकार",
+    "idNumber": "पहचान पत्र संख्या",
+    "idCard": "पहचान पत्र अपलोड",
+    "photo": "फोटो अपलोड"
+  },
+  "saleDeed": {
+    "title": "सेल डीड फॉर्म",
+    "propertyDetails": "संपत्ति का विवरण",
+    "sellers": "विक्रेता का विवरण",
+    "buyers": "खरीदार का विवरण",
+    "addSeller": "विक्रेता जोड़ें",
+    "addBuyer": "खरीदार जोड़ें"
+  },
+  "willDeed": {
+    "title": "विल डीड फॉर्म",
+    "testatorDetails": "वसीयतकर्ता का विवरण",
+    "beneficiaries": "लाभार्थियों का विवरण",
+    "addBeneficiary": "लाभार्थी जोड़ें"
+  },
+  "propertyRegistration": {
+    "title": "संपत्ति पंजीकरण फॉर्म",
+    "propertyInfo": "संपत्ति की जानकारी",
+    "ownerDetails": "मालिक का विवरण"
+  },
+  "powerOfAttorney": {
+    "title": "वकीलनामा फॉर्म",
+    "principalDetails": "प्रधान का विवरण",
+    "agentDetails": "एजेंट का विवरण"
+  },
+  "adoptionDeed": {
+    "title": "गोद लेने का डीड फॉर्म",
+    "adoptiveParents": "गोद लेने वाले माता-पिता",
+    "childDetails": "बच्चे का विवरण"
+  },
+  "common": {
+    "select": "चुनें",
+    "enter": "दर्ज करें",
+    "upload": "अपलोड करें",
+    "choose": "चुनें",
+    "yes": "हाँ",
+    "no": "नहीं",
+    "male": "पुरुष",
+    "female": "महिला",
+    "other": "अन्य"
+  }
+}

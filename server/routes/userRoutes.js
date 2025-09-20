@@ -27,4 +27,50 @@ router.post("/logout",setAuthHeader, accessTokenAutoRefresh,passport.authenticat
 
 router.post("/contact",setAuthHeader,accessTokenAutoRefresh,passport.authenticate('userOrAgent', {session: false}), ContactController.submitContactForm);
 
+// Payment endpoints (temporary - to be moved to dedicated payment routes)
+router.post("/payment/initialize", (req, res) => {
+  try {
+    const { formType, formData, amount, userInfo } = req.body;
+    
+    // Generate transaction ID
+    const txnid = `TXN${Date.now()}${Math.random().toString(36).substr(2, 5)}`;
+    
+    // PayU configuration
+    const payuConfig = {
+      key: 'gtKFFx',
+      salt: 'eCwWELxi',
+      txnid: txnid,
+      amount: amount || 1000,
+      productinfo: `${formType} Form Submission`,
+      firstname: userInfo?.name || formData?.name || formData?.trustName || 'User',
+      email: 'bonehookadvt01@gmail.com',
+      phone: userInfo?.phone || formData?.phone || formData?.mobile || '9999999999',
+      surl: `${process.env.FRONTEND_HOST || 'http://localhost:3000'}/payment/success`,
+      furl: `${process.env.FRONTEND_HOST || 'http://localhost:3000'}/payment/failure`
+    };
+
+    // Generate hash
+    const crypto = require('crypto');
+    const hashString = `${payuConfig.key}|${payuConfig.txnid}|${payuConfig.amount}|${payuConfig.productinfo}|${payuConfig.firstname}|${payuConfig.email}|||||||||||${payuConfig.salt}`;
+    const hash = crypto.createHash('sha512').update(hashString).digest('hex');
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Payment initialized successfully',
+      data: {
+        ...payuConfig,
+        hash: hash,
+        paymentUrl: 'https://test.payu.in/_payment'
+      }
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      status: 'failed',
+      message: 'Failed to initialize payment',
+      error: error.message
+    });
+  }
+});
+
 export default router;

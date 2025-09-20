@@ -3,6 +3,9 @@ import React, { useState, useEffect, useRef } from "react";
 import "../app/sale-deed/saledeed.css";
 import { FormWorkflowProvider, useFormWorkflow } from './FormWorkflow/FormWorkflowProvider';
 import FormWorkflow from './FormWorkflow/FormWorkflow';
+import LanguageSelectorDropdown from './LanguageSelectorDropdown';
+import ClientOnly from './ClientOnly';
+import { useTranslation } from 'react-i18next';
 
 // Constants
 const STAMP_DUTY_RATE = 0.07;
@@ -64,6 +67,7 @@ const convertToMeters = (value, unit) => {
 
 const SaleDeedFormContent = () => {
   const { goToPreview, formData: workflowFormData } = useFormWorkflow();
+  const { t } = useTranslation();
   
   // Form state
   const [formData, setFormData] = useState({
@@ -810,6 +814,14 @@ const SaleDeedFormContent = () => {
           <div className="small">Complete property sale deed with calculations, file uploads, and preview generation.</div>
         </div>
         <div className="controls">
+          <ClientOnly fallback={
+            <div className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm">
+              <span className="text-lg">🌐</span>
+              <span className="hidden sm:inline">Loading...</span>
+            </div>
+          }>
+            <LanguageSelectorDropdown />
+          </ClientOnly>
           <button className="btn save" onClick={saveDraft}>💾 Save Draft</button>
           <button className="btn preview" onClick={generatePreview}>🔍 Preview</button>
           <button className="btn submit" onClick={handleSaveData} disabled={isLoading}>

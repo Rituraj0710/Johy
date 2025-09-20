@@ -124,8 +124,9 @@ const trustDeedSchema = new mongoose.Schema({
   terms: [{ type: String, trim: true, maxLength: 200 }],
   otherTerms: [{ type: String, trim: true, maxLength: 200 }],
   witnesses: { type: [witnessSchema], default: [] },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   meta: {
-    status: { type: String, enum: ["draft", "submitted", "approved", "rejected"], default: "submitted" },
+    status: { type: String, enum: ["draft", "submitted", "approved", "rejected"], default: "draft" },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
   },
