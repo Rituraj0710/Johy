@@ -21,6 +21,46 @@ const sanitizeInput = (input) => {
 };
 
 class WillDeedController {
+  static submit = async (req, res) => {
+    try {
+      const jsonPart = req.body?.data ? JSON.parse(req.body.data) : null;
+      if (!jsonPart) {
+        return res.status(400).json({ status: 'failed', message: 'Missing form data' });
+      }
+
+      const sanitizedData = sanitizeInput(jsonPart);
+
+      const willDeedData = {
+        meta: sanitizedData.meta || {},
+        testator: sanitizedData.testator || {},
+        beneficiaries: sanitizedData.beneficiaries || [],
+        executors: sanitizedData.executors || [],
+        witnesses: sanitizedData.witnesses || [],
+        immovables: sanitizedData.immovables || [],
+        movables: sanitizedData.movables || [],
+        rules: sanitizedData.rules || [],
+        conditions: sanitizedData.conditions || [],
+        createdBy: req.user?._id
+      };
+
+      const uploads = { testatorId: '', testatorPhoto: '', personIds: [], personPhotos: [] };
+      (req.files || []).forEach((f) => {
+        if (f.fieldname === 'testator_id') uploads.testatorId = f.path;
+        else if (f.fieldname === 'testator_photo') uploads.testatorPhoto = f.path;
+        else if (f.fieldname.startsWith('person_id_')) uploads.personIds.push(f.path);
+        else if (f.fieldname.startsWith('person_photo_')) uploads.personPhotos.push(f.path);
+      });
+      willDeedData.uploads = uploads;
+
+      const willDeed = new WillDeed(willDeedData);
+      await willDeed.save();
+
+      return res.status(201).json({ status: 'success', message: 'Will Deed submitted', data: { id: willDeed._id } });
+    } catch (error) {
+      logger.error('Will deed submit error', { error: error.message, stack: error.stack, userId: req.user?._id });
+      return res.status(500).json({ status: 'failed', message: 'Internal server error' });
+    }
+  }
   static create = async (req, res) => {
     try {
       // Sanitize all input data
@@ -176,7 +216,8 @@ class WillDeedController {
   static getAll = async (req, res) => {
     try {
       const { page = 1, limit = 10, status } = req.query;
-      const filter = status ? { status } : {};
+      const filter = { createdBy: req.user?._id };
+      if (status) filter.status = status;
       
       const willDeeds = await WillDeed.find(filter)
         .populate('createdBy', 'name email')
@@ -213,7 +254,7 @@ class WillDeedController {
     try {
       const { id } = req.params;
       
-      const willDeed = await WillDeed.findById(id)
+      const willDeed = await WillDeed.findOne({ _id: id, createdBy: req.user?._id })
         .populate('createdBy', 'name email');
 
       if (!willDeed) {
@@ -255,8 +296,8 @@ class WillDeedController {
         });
       }
 
-      const willDeed = await WillDeed.findByIdAndUpdate(
-        id,
+      const willDeed = await WillDeed.findOneAndUpdate(
+        { _id: id, createdBy: req.user?._id },
         { status },
         { new: true }
       );
@@ -298,7 +339,7 @@ class WillDeedController {
     try {
       const { id } = req.params;
       
-      const willDeed = await WillDeed.findByIdAndDelete(id);
+      const willDeed = await WillDeed.findOneAndDelete({ _id: id, createdBy: req.user?._id });
 
       if (!willDeed) {
         return res.status(404).json({

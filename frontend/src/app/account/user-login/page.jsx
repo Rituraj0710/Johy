@@ -27,6 +27,17 @@ const Login = () => {
         try {
           const response = await loginUser(values);
           if(response.data && response.data.status === 'success'){
+           const { access_token, refresh_token, user } = response.data;
+           if (typeof window !== 'undefined'){
+             if (access_token) localStorage.setItem('access_token', access_token);
+             if (refresh_token) localStorage.setItem('refresh_token', refresh_token);
+             if (user?.roles) localStorage.setItem('role', user.roles);
+             if (user?.email) localStorage.setItem('user_email', user.email);
+             if (user?.id) localStorage.setItem('user_id', user.id);
+             if (user?.name) localStorage.setItem('user_name', user.name);
+             if (user?.phone) localStorage.setItem('user_phone', user.phone);
+             localStorage.setItem('is_auth', 'true');
+           }
            setServerSuccessMessage(response.data.message);
            setServerErrorMessage('')
            action.resetForm();

@@ -6,7 +6,13 @@ export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({ 
     baseUrl: `${getApiBaseUrl()}/api/user/`,
-    credentials: 'include'
+    prepareHeaders: (headers) => {
+      if (typeof window !== 'undefined'){
+        const token = localStorage.getItem('access_token');
+        if (token) headers.set('authorization', `Bearer ${token}`);
+      }
+      return headers;
+    }
   }),
   endpoints: (builder) => ({
     createUser: builder.mutation({
@@ -44,7 +50,6 @@ export const authApi = createApi({
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: "include", //It is required to set cookie
         };
       },
     }),
@@ -53,7 +58,6 @@ export const authApi = createApi({
         return {
           url: "profile",
           method: "GET",
-          credentials: "include",
         };
       },
     }),
@@ -63,7 +67,6 @@ export const authApi = createApi({
           url: "logout",
           method: "POST",
           body: {},
-          credentials: "include",
         };
       },
     }),
@@ -99,7 +102,6 @@ export const authApi = createApi({
           url: `change-password`,
           method: "POST",
           body: actualData,
-          credentials: "include",
         };
       },
     }),
@@ -109,7 +111,6 @@ export const authApi = createApi({
           url: `contact`,
           method: "POST",
           body: actualData,
-          credentials: "include",
         };
       },
     }),

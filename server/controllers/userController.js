@@ -52,7 +52,7 @@ class UserController {
       const newUser = await UserModel.create({name, phone, email, password:hashedPassword});
       await newUser.save();
 
-      sendEmailVerificationOTP(req, newUser);
+      await sendEmailVerificationOTP(req, newUser);
 
       // Log successful registration
       logger.info(`User registration successful: ${email}`, {
@@ -72,6 +72,29 @@ class UserController {
     } catch (error) {
       console.log(error);
       res.status(500).json({status: "failed", message: "Unable to register, Please try again later"});
+    }
+  }
+
+  // Resend Email Verification OTP
+  static resendVerificationOTP = async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ status: "failed", message: "Email is required" });
+      }
+      const existingUser = await UserModel.findOne({ email });
+      if (!existingUser) {
+        return res.status(404).json({ status: "failed", message: "User not found" });
+      }
+      if (existingUser.is_verified) {
+        return res.status(400).json({ status: "failed", message: "Email is already verified." });
+      }
+
+      await sendEmailVerificationOTP(req, existingUser);
+      return res.status(200).json({ status: "success", message: "A new OTP has been sent to your email." });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ status: "failed", message: "Unable to resend OTP. Please try again later." });
     }
   }
 
@@ -103,7 +126,8 @@ class UserController {
         .findOne({ userId: existingUser._id })
         .sort({ createdAt: -1 });
       if (!emailVerification) {
-        return res.status(400).json({ status: "failed", message: "No OTP found. Please request a new OTP." });
+        await sendEmailVerificationOTP(req, existingUser);
+        return res.status(400).json({ status: "failed", message: "No OTP found. A new OTP has been sent to your email." });
       }
       // Check if OTP matches
       if (String(emailVerification.otp).trim() !== providedOtp) {
@@ -195,8 +219,7 @@ class UserController {
       // Extract role
       const role = user.roles[0];
 
-      // Set Cookies
-      setTokenCookies(res, accessToken, refreshToken, accessTokenExp, refreshTokenExp, role)
+      // No cookies – frontend stores tokens in localStorage
 
       // Log successful login
       logger.info(`User login successful: ${email}`, {

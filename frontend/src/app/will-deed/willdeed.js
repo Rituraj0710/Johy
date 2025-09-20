@@ -947,9 +947,14 @@ async function submitForm() {
       if (inp.files?.[0]) form.append(`person_photo_${idx}`, inp.files[0]);
     });
 
+    const headers = {};
+    if (typeof window !== 'undefined'){
+      const token = localStorage.getItem('access_token');
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+    }
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/api/will-deed/submit`, {
       method: "POST",
-      credentials: "include",
+      headers,
       body: form,
     });
 

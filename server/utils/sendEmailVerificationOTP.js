@@ -12,6 +12,8 @@ const sendEmailVerificationOTP = async (req, user) => {
   // Generate a random 4-digit number and store as string to match schema
   const otp = String(Math.floor(1000 + Math.random() * 9000));
 
+  // Remove any existing OTPs for this user to ensure only one active OTP
+  await EmailVerificationModel.deleteMany({ userId: user._id });
   // Save OTP in Database
   const newOtp = new EmailVerificationModel({userId: user._id, otp})
   await newOtp.save();

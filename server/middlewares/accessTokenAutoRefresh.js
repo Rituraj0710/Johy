@@ -30,9 +30,9 @@ const accessTokenAutoRefresh = async (req,res,next) => {
       }
       next();
   } catch (error) {
-    console.log("Error adding access token to header.", error.message);
-    // Handle the error, such as returning an error response or redirecting to the login page
-    res.status(401).json({error: 'Unauthorized', message: 'Access token is missing or invalid'});
+    console.log("Skipping auto-refresh:", error.message);
+    // Do not block the request; let downstream handlers/auth decide
+    return next();
   }
 };
 export default accessTokenAutoRefresh;

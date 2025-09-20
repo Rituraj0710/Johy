@@ -13,6 +13,7 @@ import { authLimiter, passwordResetLimiter, emailVerificationLimiter } from "../
 // Public Routes with rate limiting
 router.post("/register", authLimiter, UserController.userRegistration);
 router.post("/verify-email", emailVerificationLimiter, UserController.verifyEmail);
+router.post("/resend-otp", emailVerificationLimiter, UserController.resendVerificationOTP);
 router.post("/login", authLimiter, UserController.userLogin);
 router.post("/refresh-token", UserController.getNewAccessToken);
 router.post("/reset-password-link", passwordResetLimiter, UserController.sendUserPasswordResetEmail);
