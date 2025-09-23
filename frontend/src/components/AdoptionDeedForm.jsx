@@ -398,42 +398,56 @@ const AdoptionDeedForm = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8">
-      <div className="max-w-6xl mx-auto px-4">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          {/* Language Selector */}
-          <div className="flex justify-end mb-4">
-            <ClientOnly fallback={
-              <div className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm">
-                <span className="text-lg">🌐</span>
-                <span className="hidden sm:inline">Loading...</span>
-              </div>
-            }>
-              <LanguageSelectorDropdown />
-            </ClientOnly>
+    <div className="min-h-screen bg-gray-50 w-full px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">दत्तक ग्रहण पत्र (Adoption Deed)</h1>
+              <p className="text-sm text-gray-600 mt-1">Complete adoption deed documentation with all required parties and legal formalities.</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <ClientOnly fallback={
+                <div className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm">
+                  <span className="text-lg">🌐</span>
+                  <span className="hidden sm:inline">Loading...</span>
+                </div>
+              }>
+                <LanguageSelectorDropdown />
+              </ClientOnly>
+              <button 
+                type="submit"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                disabled={isLoading}
+                onClick={handleSubmit}
+              >
+                {isLoading ? '⏳ Submitting...' : '✅ Submit Form'}
+              </button>
+            </div>
           </div>
-          
-          <h1 className="text-3xl font-bold text-center text-gray-800 mb-8 border-b-4 border-blue-600 pb-4">
-            दत्तक ग्रहण पत्र (Adoption Deed)
-          </h1>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Form Content */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Registration Details Section */}
-            <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
-              <h2 className="text-2xl font-semibold text-gray-700 mb-6 border-b-2 border-blue-500 pb-2">
+            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
                 पंजीकरण विवरण
               </h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     देश <span className="text-red-500">*</span>
                   </label>
                   <select
                     name="country"
                     value={formData.country}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     required
                   >
                     <option value="भारत">भारत</option>
@@ -560,7 +574,7 @@ const AdoptionDeedForm = () => {
                       previewLabel="Child Photo Preview"
                       width={280}
                       height={200}
-                      aspectRatio={4/3}
+                      aspectRatio={1.333}
                       compact={true}
                     />
                   </div>
@@ -842,7 +856,7 @@ const AdoptionDeedForm = () => {
                             previewLabel="Party Photo Preview"
                             width={280}
                             height={200}
-                            aspectRatio={4/3}
+                            aspectRatio={1.333}
                             compact={true}
                           />
                         </div>
@@ -1592,8 +1606,8 @@ const AdoptionDeedForm = () => {
             </div>
           </form>
         </div>
+        </div>
       </div>
-    </div>
   );
 };
 

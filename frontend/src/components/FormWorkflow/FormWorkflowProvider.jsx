@@ -85,23 +85,64 @@ export const FormWorkflowProvider = ({ children, formType }) => {
             throw new Error('At least one beneficiary is required');
           }
           break;
+        case 'property-registration':
+          if (!data.propertyDetails) {
+            throw new Error('Property details are required');
+          }
+          break;
+        case 'property-sale-certificate':
+          if (!data.bank_name || !data.bank_rep_name || !data.property_address || !data.sale_amount) {
+            throw new Error('Bank information, property details, and sale amount are required');
+          }
+          break;
+        case 'power-of-attorney':
+          if (!data.principal || !data.agent) {
+            throw new Error('Principal and agent information are required');
+          }
+          break;
+        case 'adoption-deed':
+          if (!data.adoptiveParents || !data.childInfo) {
+            throw new Error('Adoptive parents and child information are required');
+          }
+          break;
       }
 
-      goToProcessing('Form validated! Redirecting to payment...');
+      goToProcessing('Submitting form data to database...');
       
-      // Go directly to payment without backend submission
-      // Backend submission will happen during payment processing
+      // Submit form data directly to backend
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4001';
+      const response = await fetch(`${API_BASE}${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Request failed (${response.status})`);
+      }
+
+      const result = await response.json();
+      console.log('Form submitted successfully:', result);
+      
+      goToProcessing('Form submitted successfully! Redirecting to payment...');
+      
+      // After successful database submission, go to payment
       setTimeout(() => {
         goToPayment({
-          formId: `temp-${Date.now()}`,
+          formId: result.data?.id || `form-${Date.now()}`,
           amount: data.amount || 1000,
           formType: formType,
-          formData: data
+          formData: data,
+          submittedToDatabase: true
         });
       }, 1500);
       
     } catch (error) {
-      console.error('Form validation error:', error);
+      console.error('Form submission error:', error);
       goToProcessing(`❌ ${error.message}. Please check your form and try again.`);
       
       // Reset to form after error

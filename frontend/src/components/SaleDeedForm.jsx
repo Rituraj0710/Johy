@@ -807,40 +807,59 @@ const SaleDeedFormContent = () => {
   }
 
   return (
-    <div className="container">
-      <div className="header">
-        <div>
-          <div className="title">Sale Deed Form Generator</div>
-          <div className="small">Complete property sale deed with calculations, file uploads, and preview generation.</div>
-        </div>
-        <div className="controls">
-          <ClientOnly fallback={
-            <div className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm">
-              <span className="text-lg">🌐</span>
-              <span className="hidden sm:inline">Loading...</span>
+    <div className="min-h-screen bg-gray-50 w-full px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Sale Deed Form Generator</h1>
+              <p className="text-sm text-gray-600 mt-1">Complete property sale deed with calculations, file uploads, and preview generation.</p>
             </div>
-          }>
-            <LanguageSelectorDropdown />
-          </ClientOnly>
-          <button className="btn save" onClick={saveDraft}>💾 Save Draft</button>
-          <button className="btn preview" onClick={generatePreview}>🔍 Preview</button>
-          <button className="btn submit" onClick={handleSaveData} disabled={isLoading}>
-            {isLoading ? '⏳ Saving...' : '✅ Submit'}
-          </button>
+            <div className="flex flex-wrap gap-3">
+              <ClientOnly fallback={
+                <div className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm">
+                  <span className="text-lg">🌐</span>
+                  <span className="hidden sm:inline">Loading...</span>
+                </div>
+              }>
+                <LanguageSelectorDropdown />
+              </ClientOnly>
+              <button 
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                onClick={saveDraft}
+              >
+                💾 Save Draft
+              </button>
+              <button 
+                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                onClick={generatePreview}
+              >
+                🔍 Preview
+              </button>
+              <button 
+                className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                onClick={handleSaveData} 
+                disabled={isLoading}
+              >
+                {isLoading ? '⏳ Saving...' : '✅ Submit'}
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div className="professional-form">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Sale Deed Form</h1>
-          <p className="text-gray-600">Professional Property Transaction Documentation</p>
-        </div>
+        {/* Form Content */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Sale Deed Form</h2>
+            <p className="text-gray-600">Professional Property Transaction Documentation</p>
+          </div>
 
-        <form className="space-y-3">
+        <form className="space-y-6">
           {/* Property Information Section */}
-          <div className="form-section">
-            <h3>Property Information</h3>
-            <div className="professional-grid cols-6">
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">Property Information</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
               <div>
                 <label>Document Type *</label>
                 <select
@@ -925,7 +944,7 @@ const SaleDeedFormContent = () => {
 
             {/* Area Input Section */}
             {formData.areaInputType === 'total' && (
-              <div className="professional-grid cols-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                 <div>
                   <label>Property Area *</label>
                   <input
@@ -1706,92 +1725,101 @@ const SaleDeedFormContent = () => {
           </div>
 
           {/* Property Description Section */}
-          <div className="form-section">
-            <h3>Property Description</h3>
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">Property Description</h3>
 
-            <div className="professional-grid cols-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               <div>
-                <label>State *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">State *</label>
                 <input
                   type="text"
                   value={formData.state}
                   onChange={(e) => handleInputChange('state', e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label>District *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">District *</label>
                 <input
                   type="text"
                   value={formData.district}
                   onChange={(e) => handleInputChange('district', e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label>Tehsil *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tehsil *</label>
                 <input
                   type="text"
                   value={formData.tehsil}
                   onChange={(e) => handleInputChange('tehsil', e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label>Village / Locality *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Village / Locality *</label>
                 <input
                   type="text"
                   value={formData.village}
                   onChange={(e) => handleInputChange('village', e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   required
                 />
               </div>
 
               <div>
-                <label>Khasra/Survey No.</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Khasra/Survey No.</label>
                 <input
                   type="text"
                   value={formData.khasraNo}
                   onChange={(e) => handleInputChange('khasraNo', e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label>Plot No.</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Plot No.</label>
                 <input
                   type="text"
                   value={formData.plotNo}
                   onChange={(e) => handleInputChange('plotNo', e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label>Colony Name</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Colony Name</label>
                 <input
                   type="text"
                   value={formData.colonyName}
                   onChange={(e) => handleInputChange('colonyName', e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label>Ward No.</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Ward No.</label>
                 <input
                   type="text"
                   value={formData.wardNo}
                   onChange={(e) => handleInputChange('wardNo', e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
               <div>
-                <label>Street No.</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Street No.</label>
                 <input
                   type="text"
                   value={formData.streetNo}
                   onChange={(e) => handleInputChange('streetNo', e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
 
@@ -2163,6 +2191,7 @@ const SaleDeedFormContent = () => {
           )}
 
         </form>
+        </div>
       </div>
     </div>
   );

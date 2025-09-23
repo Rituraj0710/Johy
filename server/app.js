@@ -82,7 +82,7 @@ import propertyRegistrationRoutes from "./routes/propertyRegistrationRoutes.js";
 import propertySaleCertificateRoutes from "./routes/propertySaleCertificateRoutes.js";
 import powerOfAttorneyRoutes from "./routes/powerOfAttorneyRoutes.js";
 import adoptionDeedRoutes from "./routes/adoptionDeedRoutes.js";
-import paymentRoutes from "./routes/paymentRoutesSimple.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
 import healthRoutes from "./routes/healthRoutes.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import requestLogger from "./middlewares/requestLogger.js";

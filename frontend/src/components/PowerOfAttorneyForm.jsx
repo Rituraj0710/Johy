@@ -678,7 +678,7 @@ const PowerOfAttorneyForm = () => {
                 previewLabel="ID Document Preview"
                 width={280}
                 height={200}
-                aspectRatio={4/3}
+                aspectRatio={1.333}
                 compact={true}
               />
             </div>
@@ -746,7 +746,7 @@ const PowerOfAttorneyForm = () => {
                 previewLabel="Passport Photo Preview"
                 width={240}
                 height={300}
-                aspectRatio={3/4}
+                aspectRatio={0.75}
                 compact={true}
               />
             </div>
@@ -765,38 +765,57 @@ const PowerOfAttorneyForm = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 py-4">
-      <div className="w-full max-w-7xl mx-auto bg-white rounded-lg shadow-lg p-4 md:p-6 lg:p-8">
-        {/* Language Selector */}
-        <div className="text-center mb-6">
-          <label className="inline-block mr-4 font-medium text-gray-700">
-            {translations[currentLang]['label-select-lang']}
-          </label>
-          <select
-            value={currentLang}
-            onChange={(e) => setCurrentLang(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="hi">हिंदी (Hindi)</option>
-            <option value="en">English</option>
-          </select>
+    <div className="min-h-screen bg-gray-50 w-full px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                {translations[currentLang]['form-heading']}
+              </h1>
+              <p className="text-sm text-gray-600 mt-1">Complete power of attorney documentation with all required parties and legal formalities.</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700">
+                  {translations[currentLang]['label-select-lang']}
+                </label>
+                <select
+                  value={currentLang}
+                  onChange={(e) => setCurrentLang(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="hi">हिंदी (Hindi)</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+              <button 
+                type="submit"
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                disabled={isLoading}
+                onClick={handleSubmit}
+              >
+                {isLoading ? '⏳ Submitting...' : '✅ Submit Form'}
+              </button>
+            </div>
+          </div>
         </div>
 
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-4">
-          {translations[currentLang]['form-heading']}
-        </h1>
+        {/* Form Content */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <p className="text-center text-gray-600 mb-8">
           {translations[currentLang]['form-subheading']}
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Document Details */}
-          <div className="bg-gray-50 p-4 md:p-6 rounded-lg border border-gray-200">
-            <h3 className="text-lg md:text-xl font-semibold text-blue-600 border-b-2 border-blue-600 pb-2 mb-4">
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">
               {translations[currentLang]['section-1-heading']}
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
               <div className="w-full">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {translations[currentLang]['label-executionDate']}
@@ -1174,8 +1193,9 @@ const PowerOfAttorneyForm = () => {
             </button>
           </div>
         </form>
+        </div>
+        </div>
       </div>
-    </div>
   );
 };
 

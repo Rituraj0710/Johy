@@ -105,12 +105,18 @@ const PaymentGateway = () => {
         formData: formData // Include form data for backend processing
       };
 
+      // Only store form data in localStorage if not already submitted to database
+      if (!formData.submittedToDatabase) {
+        localStorage.setItem('formData', JSON.stringify(formData));
+        localStorage.setItem('draftData', JSON.stringify(formData));
+      }
+      
       // Initialize payment with backend (mock response for now)
       let paymentResult;
       
       try {
-        const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4000';
-        const paymentResponse = await fetch(`${API_BASE}/api/trust-deed/payment/initialize`, {
+        const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4001';
+        const paymentResponse = await fetch(`${API_BASE}/api/payment/initialize`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

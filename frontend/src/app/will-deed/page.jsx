@@ -128,51 +128,157 @@ export default function WillDeed() {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="header flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-blue-600">अंतिम वसीयतनामा (Will Deed) — Generator</h1>
-          <p className="text-sm text-gray-600">
-            Preview में legal Hindi draft बनेगा — allocation mapping, rules, conditions और watermark included.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <ClientOnly fallback={
-            <div className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm">
-              <span className="text-lg">🌐</span>
-              <span className="hidden sm:inline">Loading...</span>
+    <div className="min-h-screen bg-gray-50 w-full px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">अंतिम वसीयतनामा (Will Deed) — Generator</h1>
+              <p className="text-sm text-gray-600 mt-1">
+                Preview में legal Hindi draft बनेगा — allocation mapping, rules, conditions और watermark included.
+              </p>
             </div>
-          }>
-            <LanguageSelectorDropdown />
-          </ClientOnly>
-          <button className="bg-blue-500 text-white px-4 py-2 rounded" onClick={() => window.saveDraft()}>
-            💾 Save Draft
-          </button>
-          <button className="bg-green-500 text-white px-4 py-2 rounded" onClick={() => window.generatePreview()}>
-            🔍 Preview
-          </button>
-          <button className="bg-purple-500 text-white px-4 py-2 rounded" onClick={() => window.submitForm()}>
-            ✅ Submit
-          </button>
+            <div className="flex flex-wrap gap-3">
+              <ClientOnly fallback={
+                <div className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm">
+                  <span className="text-lg">🌐</span>
+                  <span className="hidden sm:inline">Loading...</span>
+                </div>
+              }>
+                <LanguageSelectorDropdown />
+              </ClientOnly>
+              <button 
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                onClick={() => window.saveDraft()}
+              >
+                💾 Save Draft
+              </button>
+              <button 
+                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                onClick={() => window.generatePreview()}
+              >
+                🔍 Preview
+              </button>
+              <button 
+                className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                onClick={() => window.submitForm()}
+              >
+                ✅ Submit
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Statistics Display */}
-      {stats && (
-        <div className="mb-6 p-4 bg-gray-100 rounded">
-          <h2 className="text-lg font-semibold">Will Deed Statistics</h2>
-          <p>Total: {stats.total}</p>
-          <p>Draft: {stats.draft}</p>
-          <p>Submitted: {stats.submitted}</p>
-          <p>Approved: {stats.approved}</p>
-          <p>Rejected: {stats.rejected}</p>
-        </div>
-      )}
+        {/* Statistics Display */}
+        {stats && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Will Deed Statistics</h2>
+              <div className="text-sm text-gray-500">
+                Last updated: {new Date().toLocaleDateString()}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+              {/* Total Documents Card */}
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-blue-700">{stats.total}</div>
+                    <div className="text-sm font-medium text-blue-600">Total Documents</div>
+                  </div>
+                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              {/* Draft Card */}
+              <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl p-4 border border-yellow-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-yellow-700">{stats.draft}</div>
+                    <div className="text-sm font-medium text-yellow-600">Draft</div>
+                  </div>
+                  <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              {/* Submitted Card */}
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-orange-700">{stats.submitted}</div>
+                    <div className="text-sm font-medium text-orange-600">Submitted</div>
+                  </div>
+                  <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              {/* Approved Card */}
+              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-green-700">{stats.approved}</div>
+                    <div className="text-sm font-medium text-green-600">Approved</div>
+                  </div>
+                  <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              {/* Rejected Card */}
+              <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-4 border border-red-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-3xl font-bold text-red-700">{stats.rejected}</div>
+                    <div className="text-sm font-medium text-red-600">Rejected</div>
+                  </div>
+                  <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
+                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Progress Bar */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Completion Rate</span>
+                <span className="text-sm font-bold text-gray-900">
+                  {stats.total > 0 ? Math.round(((stats.approved + stats.submitted) / stats.total) * 100) : 0}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all duration-300"
+                  style={{
+                    width: `${stats.total > 0 ? ((stats.approved + stats.submitted) / stats.total) * 100 : 0}%`
+                  }}
+                ></div>
+              </div>
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <span>Pending: {stats.draft + stats.rejected}</span>
+                <span>Completed: {stats.approved + stats.submitted}</span>
+              </div>
+            </div>
+          </div>
+        )}
 
-      {/* Will Deeds List */}
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold">Will Deeds</h2>
-        <div className="grid gap-4">
+        {/* Will Deeds List */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Will Deeds</h2>
+          <div className="grid gap-4">
           {willDeeds.map((deed) => (
             <div key={deed._id} className="p-4 bg-white shadow rounded">
               <p><strong>Testator:</strong> {deed.testator.fullName}</p>
@@ -241,14 +347,15 @@ export default function WillDeed() {
         </div>
       )}
 
-      <div id="formCard" className="card bg-white p-6 rounded shadow">
-        <div className="section">
-          <h2 className="text-lg font-semibold">1) वसीयतकर्ता (Testator)</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Form Section */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 mb-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4 pb-2 border-b border-gray-200">1) वसीयतकर्ता (Testator)</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium">नाम</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">नाम</label>
               <div className="flex gap-2">
-                <select id="testatorPrefix" className="border rounded px-2 py-1">
+                <select id="testatorPrefix" className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                   <option>श्री</option>
                   <option>श्रीमती</option>
                   <option>कुमारी</option>
@@ -257,36 +364,36 @@ export default function WillDeed() {
                 <input
                   type="text"
                   id="testatorName"
-                  className="border rounded px-2 py-1 w-full"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="पूरा नाम"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium">श्री पिता/पति का नाम</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">श्री पिता/पति का नाम</label>
               <input
                 type="text"
                 id="testatorFH"
-                className="border rounded px-2 py-1 w-full"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="पिता/पति का नाम"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium">मोबाइल नंबर</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">मोबाइल नंबर</label>
               <input
                 type="tel"
                 id="testatorMobile"
-                className="border rounded px-2 py-1 w-full"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 placeholder="10 अंक"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium">पता</label>
-              <textarea id="testatorAddress" className="border rounded px-2 py-1 w-full"></textarea>
+            <div className="sm:col-span-2 lg:col-span-3 xl:col-span-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">पता</label>
+              <textarea id="testatorAddress" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" rows="3"></textarea>
             </div>
             <div>
-              <label className="block text-sm font-medium">Identity Type</label>
-              <select id="testatorIdType" className="border rounded px-2 py-1 w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Identity Type</label>
+              <select id="testatorIdType" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 <option>आधार कार्ड</option>
                 <option>पैन कार्ड</option>
                 <option>वोटर आईडी</option>
@@ -296,7 +403,7 @@ export default function WillDeed() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium">Identity No.</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Identity No.</label>
               <input type="text" id="testatorIdNo" className="border rounded px-2 py-1 w-full" />
             </div>
             <div>
@@ -472,6 +579,7 @@ export default function WillDeed() {
         <div className="preview-page bg-white p-6 rounded shadow relative">
           <div className="watermark-layer" id="wmLayer"></div>
           <div className="preview-body" id="previewBody"></div>
+        </div>
         </div>
       </div>
     </div>
