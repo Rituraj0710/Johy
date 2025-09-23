@@ -142,7 +142,18 @@ const uploadFields = [
 ];
 
 // Apply authentication middleware to all routes
-router.use(passport.authenticate('jwt', { session: false }));
+// Apply optional authentication middleware to all routes
+router.use((req, res, next) => {
+  passport.authenticate('userOrAgent', { session: false }, (err, user, info) => {
+    if (err) {
+      return next(err);
+    }
+    if (user) {
+      req.user = user;
+    }
+    next();
+  })(req, res, next);
+});
 router.use(accessTokenAutoRefresh);
 router.use(setAuthHeader);
 
@@ -153,7 +164,7 @@ router.get("/:id", TrustDeedController.getById);
 router.put("/:id/status", TrustDeedController.updateStatus);
 router.delete("/:id", TrustDeedController.delete);
 
-// Payment initialization endpoint
-router.post("/payment/initialize", TrustDeedController.initializePayment);
+// Payment initialization endpoint (commented out - method not implemented)
+// router.post("/payment/initialize", TrustDeedController.initializePayment);
 
 export default router;

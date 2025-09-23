@@ -57,8 +57,17 @@ class WillDeedController {
 
       return res.status(201).json({ status: 'success', message: 'Will Deed submitted', data: { id: willDeed._id } });
     } catch (error) {
-      logger.error('Will deed submit error', { error: error.message, stack: error.stack, userId: req.user?._id });
-      return res.status(500).json({ status: 'failed', message: 'Internal server error' });
+      logger.error('Will deed submit error', { 
+        error: error.message, 
+        stack: error.stack, 
+        userId: req.user?._id,
+        validationErrors: error.errors 
+      });
+      return res.status(500).json({ 
+        status: 'failed', 
+        message: 'Internal server error',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+      });
     }
   }
   static create = async (req, res) => {
@@ -216,8 +225,13 @@ class WillDeedController {
   static getAll = async (req, res) => {
     try {
       const { page = 1, limit = 10, status } = req.query;
-      const filter = { createdBy: req.user?._id };
-      if (status) filter.status = status;
+      const filter = {};
+      if (req.user?._id) {
+        filter.createdBy = req.user._id;
+      }
+      if (status && status !== '') {
+        filter['meta.status'] = status;
+      }
       
       const willDeeds = await WillDeed.find(filter)
         .populate('createdBy', 'name email')
@@ -254,7 +268,12 @@ class WillDeedController {
     try {
       const { id } = req.params;
       
-      const willDeed = await WillDeed.findOne({ _id: id, createdBy: req.user?._id })
+      const filter = { _id: id };
+      if (req.user?._id) {
+        filter.createdBy = req.user._id;
+      }
+      
+      const willDeed = await WillDeed.findOne(filter)
         .populate('createdBy', 'name email');
 
       if (!willDeed) {
@@ -296,9 +315,14 @@ class WillDeedController {
         });
       }
 
+      const filter = { _id: id };
+      if (req.user?._id) {
+        filter.createdBy = req.user._id;
+      }
+      
       const willDeed = await WillDeed.findOneAndUpdate(
-        { _id: id, createdBy: req.user?._id },
-        { status },
+        filter,
+        { 'meta.status': status },
         { new: true }
       );
 
@@ -339,7 +363,12 @@ class WillDeedController {
     try {
       const { id } = req.params;
       
-      const willDeed = await WillDeed.findOneAndDelete({ _id: id, createdBy: req.user?._id });
+      const filter = { _id: id };
+      if (req.user?._id) {
+        filter.createdBy = req.user._id;
+      }
+      
+      const willDeed = await WillDeed.findOneAndDelete(filter);
 
       if (!willDeed) {
         return res.status(404).json({
@@ -374,10 +403,16 @@ class WillDeedController {
 
   static getStats = async (req, res) => {
     try {
+      const matchFilter = {};
+      if (req.user?._id) {
+        matchFilter.createdBy = req.user._id;
+      }
+      
       const stats = await WillDeed.aggregate([
+        { $match: matchFilter },
         {
           $group: {
-            _id: '$status',
+            _id: '$meta.status',
             count: { $sum: 1 }
           }
         }

@@ -48,7 +48,7 @@ const uploadFields = [
 
 // Middleware for authentication
 const authenticate = [
-  passport.authenticate('jwt', { session: false }),
+  passport.authenticate('userOrAgent', { session: false }),
   accessTokenAutoRefresh,
   setAuthHeader
 ];

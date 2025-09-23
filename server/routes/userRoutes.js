@@ -8,6 +8,7 @@ import accessTokenAutoRefresh from "../middlewares/accessTokenAutoRefresh.js";
 import ContactController from "../controllers/contactUsController.js";
 import optionalAuthMiddleware from "../middlewares/contactUs.js";
 import setAuthHeader from "../middlewares/setAuthHeader.js";
+import { authorizeRoles } from "../middlewares/authorizeRoles.js";
 import { authLimiter, passwordResetLimiter, emailVerificationLimiter } from "../config/rateLimits.js";
 
 // Public Routes with rate limiting
@@ -20,12 +21,12 @@ router.post("/reset-password-link", passwordResetLimiter, UserController.sendUse
 router.post("/reset-password/:id/:token", passwordResetLimiter, UserController.userPasswordReset);
 
 
-// Procted Routes
-router.get("/profile",setAuthHeader, accessTokenAutoRefresh,passport.authenticate('userOrAgent', {session: false}),UserController.userProfile);
-router.post("/change-password",setAuthHeader, accessTokenAutoRefresh,passport.authenticate('userOrAgent', {session: false}),UserController.changeUserPassword);
-router.post("/logout",setAuthHeader, accessTokenAutoRefresh,passport.authenticate('userOrAgent', {session: false}),UserController.userLogout);
+// Protected Routes - Accessible by user, staff_*, and admin
+router.get("/profile", setAuthHeader, accessTokenAutoRefresh, authorizeRoles('user', 'admin', 'staff_1', 'staff_2', 'staff_3', 'staff_4', 'staff_5', 'staff_6', 'staff_7'), UserController.userProfile);
+router.post("/change-password", setAuthHeader, accessTokenAutoRefresh, authorizeRoles('user', 'admin', 'staff_1', 'staff_2', 'staff_3', 'staff_4', 'staff_5', 'staff_6', 'staff_7'), UserController.changeUserPassword);
+router.post("/logout", setAuthHeader, accessTokenAutoRefresh, authorizeRoles('user', 'admin', 'staff_1', 'staff_2', 'staff_3', 'staff_4', 'staff_5', 'staff_6', 'staff_7'), UserController.userLogout);
 
-router.post("/contact",setAuthHeader,accessTokenAutoRefresh,passport.authenticate('userOrAgent', {session: false}), ContactController.submitContactForm);
+router.post("/contact", setAuthHeader, accessTokenAutoRefresh, authorizeRoles('user', 'admin', 'staff_1', 'staff_2', 'staff_3', 'staff_4', 'staff_5', 'staff_6', 'staff_7'), ContactController.submitContactForm);
 
 // Payment endpoints (temporary - to be moved to dedicated payment routes)
 router.post("/payment/initialize", (req, res) => {

@@ -64,7 +64,18 @@ const uploadFields = [
 ];
 
 // Apply authentication middleware to all routes
-router.use(passport.authenticate('jwt', { session: false }));
+// Apply optional authentication middleware to all routes
+router.use((req, res, next) => {
+  passport.authenticate('userOrAgent', { session: false }, (err, user, info) => {
+    if (err) {
+      return next(err);
+    }
+    if (user) {
+      req.user = user;
+    }
+    next();
+  })(req, res, next);
+});
 router.use(accessTokenAutoRefresh);
 router.use(setAuthHeader);
 

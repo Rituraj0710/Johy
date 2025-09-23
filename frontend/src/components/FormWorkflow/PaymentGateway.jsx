@@ -106,6 +106,8 @@ const PaymentGateway = () => {
       };
 
       // Initialize payment with backend (mock response for now)
+      let paymentResult;
+      
       try {
         const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4000';
         const paymentResponse = await fetch(`${API_BASE}/api/trust-deed/payment/initialize`, {
@@ -130,12 +132,12 @@ const PaymentGateway = () => {
           throw new Error('Backend payment endpoint not available');
         }
 
-        const paymentResult = await paymentResponse.json();
+        paymentResult = await paymentResponse.json();
       } catch (error) {
         // Fallback to mock payment data if backend is not available
         console.log('Using mock payment data:', error.message);
         
-        const mockPaymentResult = {
+        paymentResult = {
           status: 'success',
           message: 'Payment initialized successfully',
           data: {
@@ -152,8 +154,6 @@ const PaymentGateway = () => {
             paymentUrl: 'https://test.payu.in/_payment'
           }
         };
-        
-        const paymentResult = mockPaymentResult;
       }
       
       // Now process payment

@@ -83,6 +83,15 @@ import propertySaleCertificateRoutes from "./routes/propertySaleCertificateRoute
 import powerOfAttorneyRoutes from "./routes/powerOfAttorneyRoutes.js";
 import adoptionDeedRoutes from "./routes/adoptionDeedRoutes.js";
 import paymentRoutes from "./routes/paymentRoutesSimple.js";
+// Staff and Admin Routes
+import adminRoutes from "./routes/adminRoutes.js";
+import staff1Routes from "./routes/staff1Routes.js";
+import staff2Routes from "./routes/staff2Routes.js";
+import staff3Routes from "./routes/staff3Routes.js";
+import staff4Routes from "./routes/staff4Routes.js";
+import staff5Routes from "./routes/staff5Routes.js";
+import staff6Routes from "./routes/staff6Routes.js";
+import staff7Routes from "./routes/staff7Routes.js";
 import dotenv from "dotenv";
 import './config/passport-jwt-strategy.js'
 dotenv.config()
@@ -150,6 +159,16 @@ app.use("/api/property-registration", propertyRegistrationRoutes);
 app.use("/api/property-sale-certificate", propertySaleCertificateRoutes);
 app.use("/api/power-of-attorney", powerOfAttorneyRoutes);
 app.use("/api/adoption-deed", adoptionDeedRoutes);
+
+// Admin and Staff Routes
+app.use("/api/admin", adminRoutes);
+app.use("/api/staff/1", staff1Routes);
+app.use("/api/staff/2", staff2Routes);
+app.use("/api/staff/3", staff3Routes);
+app.use("/api/staff/4", staff4Routes);
+app.use("/api/staff/5", staff5Routes);
+app.use("/api/staff/6", staff6Routes);
+app.use("/api/staff/7", staff7Routes);
 
 // Static for uploads
 import path from "path";

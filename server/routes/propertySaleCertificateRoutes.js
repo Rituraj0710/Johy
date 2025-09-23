@@ -7,7 +7,7 @@ import PropertySaleCertificateController from "../controllers/propertySaleCertif
 const router = express.Router();
 
 // Apply authentication middleware to all routes
-router.use(passport.authenticate('jwt', { session: false }));
+router.use(passport.authenticate('userOrAgent', { session: false }));
 router.use(accessTokenAutoRefresh);
 router.use(setAuthHeader);
 
