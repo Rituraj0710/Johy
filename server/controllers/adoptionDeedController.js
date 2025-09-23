@@ -44,10 +44,10 @@ class AdoptionDeedController {
         isOrphanageAdoption,
         orphanageName,
         orphanageAddress,
-        firstParties,
-        secondParties,
-        witnesses,
-        gifts,
+        firstParties = [],
+        secondParties = [],
+        witnesses = [],
+        gifts = [],
         stampAmount,
         stampNo,
         stampDate
@@ -55,20 +55,32 @@ class AdoptionDeedController {
 
       // Validation
       if (!state || !district || !tehsil || !subRegistrarOffice) {
+        logger.warn('Adoption deed creation failed: Missing registration details', { 
+          userId: req.user?.id,
+          ip: req.ip
+        });
         return res.status(400).json({
           success: false,
-          message: "Registration details are required"
+          message: "Registration details are required: state, district, tehsil, subRegistrarOffice"
         });
       }
 
       if (!childName || !childDOB || !childGender || !childBloodGroup) {
+        logger.warn('Adoption deed creation failed: Missing child details', { 
+          userId: req.user?.id,
+          ip: req.ip
+        });
         return res.status(400).json({
           success: false,
-          message: "Child details are required"
+          message: "Child details are required: childName, childDOB, childGender, childBloodGroup"
         });
       }
 
       if (!firstParties || firstParties.length === 0) {
+        logger.warn('Adoption deed creation failed: No adopting parties provided', { 
+          userId: req.user?.id,
+          ip: req.ip
+        });
         return res.status(400).json({
           success: false,
           message: "At least one adopting party (First Party) is required"
@@ -76,6 +88,10 @@ class AdoptionDeedController {
       }
 
       if (!isOrphanageAdoption && (!secondParties || secondParties.length === 0)) {
+        logger.warn('Adoption deed creation failed: No biological parents for non-orphanage adoption', { 
+          userId: req.user?.id,
+          ip: req.ip
+        });
         return res.status(400).json({
           success: false,
           message: "At least one natural parent (Second Party) is required for non-orphanage adoptions"
@@ -83,6 +99,10 @@ class AdoptionDeedController {
       }
 
       if (!witnesses || witnesses.length === 0) {
+        logger.warn('Adoption deed creation failed: No witnesses provided', { 
+          userId: req.user?.id,
+          ip: req.ip
+        });
         return res.status(400).json({
           success: false,
           message: "At least one witness is required"
@@ -90,9 +110,13 @@ class AdoptionDeedController {
       }
 
       if (!stampAmount || !stampNo || !stampDate) {
+        logger.warn('Adoption deed creation failed: Missing stamp details', { 
+          userId: req.user?.id,
+          ip: req.ip
+        });
         return res.status(400).json({
           success: false,
-          message: "Stamp details are required"
+          message: "Stamp details are required: stampAmount, stampNo, stampDate"
         });
       }
 
@@ -100,14 +124,16 @@ class AdoptionDeedController {
       const childAge = new Date().getFullYear() - new Date(childDOB).getFullYear();
       
       for (const party of firstParties) {
-        const partyAge = new Date().getFullYear() - new Date(party.dob).getFullYear();
-        const ageDifference = partyAge - childAge;
-        
-        if (ageDifference < 21) {
-          return res.status(400).json({
-            success: false,
-            message: `Adopting party ${party.name} must be at least 21 years older than the child`
-          });
+        if (party.dob) {
+          const partyAge = new Date().getFullYear() - new Date(party.dob).getFullYear();
+          const ageDifference = partyAge - childAge;
+          
+          if (ageDifference < 21) {
+            return res.status(400).json({
+              success: false,
+              message: `Adopting party ${party.name} must be at least 21 years older than the child`
+            });
+          }
         }
 
         // Validate spouse consent for married parties
@@ -120,8 +146,8 @@ class AdoptionDeedController {
       }
 
       // Create new adoption deed
-      const adoptionDeed = new AdoptionDeed({
-        country,
+      const adoptionDeedData = {
+        country: country || 'भारत',
         state,
         district,
         tehsil,
@@ -133,20 +159,20 @@ class AdoptionDeedController {
         childEducation,
         childCurrentAddress,
         childBirthCertNo,
-        childBirthCertIssueDate: new Date(childBirthCertIssueDate),
+        childBirthCertIssueDate: childBirthCertIssueDate ? new Date(childBirthCertIssueDate) : null,
         childBirthCertIssuePlace,
-        isOrphanageAdoption,
+        isOrphanageAdoption: isOrphanageAdoption === true || isOrphanageAdoption === 'true',
         orphanageName: isOrphanageAdoption ? orphanageName : undefined,
         orphanageAddress: isOrphanageAdoption ? orphanageAddress : undefined,
         firstParties,
         secondParties: isOrphanageAdoption ? [] : secondParties,
         witnesses,
         gifts: gifts || [],
-        stampAmount: parseFloat(stampAmount),
+        stampAmount: parseFloat(stampAmount) || 0,
         stampNo,
         stampDate: new Date(stampDate),
-        createdBy: req.user ? req.user.id : null
-      });
+        createdBy: req.user?.id || null
+      };
 
       // Handle file uploads
       if (req.files) {
@@ -154,42 +180,43 @@ class AdoptionDeedController {
         
         fileFields.forEach(field => {
           if (req.files[field]) {
-            adoptionDeed[field] = req.files[field][0].filename;
+            adoptionDeedData[field] = req.files[field][0].filename;
           }
         });
 
         // Handle party photos
         if (req.files.firstPartyPhoto) {
           req.files.firstPartyPhoto.forEach((file, index) => {
-            if (adoptionDeed.firstParties[index]) {
-              adoptionDeed.firstParties[index].photo = file.filename;
+            if (adoptionDeedData.firstParties[index]) {
+              adoptionDeedData.firstParties[index].photo = file.filename;
             }
           });
         }
 
         if (req.files.secondPartyPhoto) {
           req.files.secondPartyPhoto.forEach((file, index) => {
-            if (adoptionDeed.secondParties[index]) {
-              adoptionDeed.secondParties[index].photo = file.filename;
+            if (adoptionDeedData.secondParties[index]) {
+              adoptionDeedData.secondParties[index].photo = file.filename;
             }
           });
         }
 
         if (req.files.witnessPhoto) {
           req.files.witnessPhoto.forEach((file, index) => {
-            if (adoptionDeed.witnesses[index]) {
-              adoptionDeed.witnesses[index].photo = file.filename;
+            if (adoptionDeedData.witnesses[index]) {
+              adoptionDeedData.witnesses[index].photo = file.filename;
             }
           });
         }
       }
 
+      const adoptionDeed = new AdoptionDeed(adoptionDeedData);
       await adoptionDeed.save();
 
-      logger.info(`Adoption deed created successfully: ${adoptionDeed._id}`, {
+      logger.info('Adoption deed created successfully', {
+        adoptionDeedId: adoptionDeed._id,
         childName,
-        createdBy: req.user ? req.user.id : 'anonymous',
-        timestamp: new Date().toISOString()
+        createdBy: req.user?.id || 'anonymous'
       });
 
       res.status(201).json({
@@ -208,7 +235,7 @@ class AdoptionDeedController {
       res.status(500).json({
         success: false,
         message: "Internal server error",
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
       });
     }
   };
@@ -272,21 +299,18 @@ class AdoptionDeedController {
     try {
       const { id } = req.params;
       
-      const adoptionDeed = await AdoptionDeed.findById(id)
+      const filter = { _id: id };
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+      
+      const adoptionDeed = await AdoptionDeed.findOne(filter)
         .populate('createdBy', 'name email');
 
       if (!adoptionDeed) {
         return res.status(404).json({
           success: false,
           message: "Adoption deed not found"
-        });
-      }
-
-      // Check if user has access to this record
-      if (req.user && req.user.role !== 'admin' && adoptionDeed.createdBy?._id.toString() !== req.user.id) {
-        return res.status(403).json({
-          success: false,
-          message: "Access denied"
         });
       }
 
@@ -316,7 +340,16 @@ class AdoptionDeedController {
         });
       }
 
-      const adoptionDeed = await AdoptionDeed.findById(id);
+      const filter = { _id: id };
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+
+      const adoptionDeed = await AdoptionDeed.findOneAndUpdate(
+        filter,
+        { 'meta.status': status },
+        { new: true }
+      );
 
       if (!adoptionDeed) {
         return res.status(404).json({
@@ -325,12 +358,8 @@ class AdoptionDeedController {
         });
       }
 
-      adoptionDeed.meta.status = status;
-      await adoptionDeed.save();
-
       logger.info(`Adoption deed status updated: ${id} to ${status}`, {
-        updatedBy: req.user ? req.user.id : 'system',
-        timestamp: new Date().toISOString()
+        updatedBy: req.user?.id || 'system'
       });
 
       res.json({
@@ -352,7 +381,12 @@ class AdoptionDeedController {
     try {
       const { id } = req.params;
       
-      const adoptionDeed = await AdoptionDeed.findById(id);
+      const filter = { _id: id };
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+      
+      const adoptionDeed = await AdoptionDeed.findOneAndDelete(filter);
 
       if (!adoptionDeed) {
         return res.status(404).json({
@@ -361,19 +395,8 @@ class AdoptionDeedController {
         });
       }
 
-      // Check if user has permission to delete
-      if (req.user && req.user.role !== 'admin' && adoptionDeed.createdBy?.toString() !== req.user.id) {
-        return res.status(403).json({
-          success: false,
-          message: "Access denied"
-        });
-      }
-
-      await AdoptionDeed.findByIdAndDelete(id);
-
       logger.info(`Adoption deed deleted: ${id}`, {
-        deletedBy: req.user ? req.user.id : 'system',
-        timestamp: new Date().toISOString()
+        deletedBy: req.user?.id || 'system'
       });
 
       res.json({
@@ -392,7 +415,13 @@ class AdoptionDeedController {
 
   static getStats = async (req, res) => {
     try {
+      const matchFilter = {};
+      if (req.user?.id) {
+        matchFilter.createdBy = req.user.id;
+      }
+      
       const stats = await AdoptionDeed.aggregate([
+        { $match: matchFilter },
         {
           $group: {
             _id: '$meta.status',
@@ -401,7 +430,7 @@ class AdoptionDeedController {
         }
       ]);
 
-      const total = await AdoptionDeed.countDocuments();
+      const total = await AdoptionDeed.countDocuments(matchFilter);
       
       const statusStats = {
         total,

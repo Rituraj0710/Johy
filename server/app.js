@@ -83,6 +83,10 @@ import propertySaleCertificateRoutes from "./routes/propertySaleCertificateRoute
 import powerOfAttorneyRoutes from "./routes/powerOfAttorneyRoutes.js";
 import adoptionDeedRoutes from "./routes/adoptionDeedRoutes.js";
 import paymentRoutes from "./routes/paymentRoutesSimple.js";
+import healthRoutes from "./routes/healthRoutes.js";
+import errorHandler from "./middlewares/errorHandler.js";
+import requestLogger from "./middlewares/requestLogger.js";
+import validateRequest from "./middlewares/validateRequest.js";
 // Staff and Admin Routes
 import adminRoutes from "./routes/adminRoutes.js";
 import staff1Routes from "./routes/staff1Routes.js";
@@ -137,11 +141,8 @@ app.use(passport.initialize());
 // Cookie parser 
 app.use(cookieParser());
 
-// Request logging middleware
-app.use((req, res, next) => {
-  logger.http(`${req.method} ${req.url} - ${req.ip}`);
-  next();
-});
+// Request logging middleware (improved)
+app.use(requestLogger);
 
 // Load Routes
 // Test payment route inline
@@ -149,6 +150,7 @@ app.get("/api/payment/test", (req, res) => {
   res.json({ status: 'success', message: 'Payment test route working' });
 });
 
+app.use("/api/health", healthRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/agent", agentRoutes);
@@ -182,41 +184,14 @@ app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'success',
     message: 'Server is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    database: 'connected'
   });
 });
 
 // Global error handler
-app.use((error, req, res, next) => {
-  // Log error with Winston
-  logger.error(`Global Error Handler: ${error.message}`, {
-    error: error.stack,
-    url: req.url,
-    method: req.method,
-    ip: req.ip,
-    userAgent: req.get('User-Agent')
-  });
-
-  if (error instanceof multer.MulterError) {
-    if (error.code === 'LIMIT_FILE_SIZE') {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'File too large. Maximum size is 5MB.'
-      });
-    }
-    if (error.code === 'LIMIT_UNEXPECTED_FILE') {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'Unexpected file field.'
-      });
-    }
-  }
-
-  res.status(500).json({
-    status: 'error',
-    message: error.message || 'Internal server error'
-  });
-});
+app.use(errorHandler);
 
 // Handle 404 for API routes (moved to the very end)
 app.use('/api', (req, res) => {

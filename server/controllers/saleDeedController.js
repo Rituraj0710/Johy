@@ -36,6 +36,10 @@ class SaleDeedController {
         areaUnit,
         propertyLength,
         propertyWidth,
+        state,
+        district,
+        tehsil,
+        village,
         sellers = [],
         buyers = [],
         witnesses = [],
@@ -52,11 +56,10 @@ class SaleDeedController {
       if (!documentType || !propertyType || !salePrice || !circleRateAmount) {
         logger.warn('Sale deed creation failed: Missing required fields', { 
           userId: req.user?.id,
-          ip: req.ip,
-          userAgent: req.get('User-Agent')
+          ip: req.ip
         });
         return res.status(400).json({
-          status: "failed",
+          success: false,
           message: "Missing required fields: documentType, propertyType, salePrice, circleRateAmount"
         });
       }
@@ -68,7 +71,7 @@ class SaleDeedController {
           ip: req.ip
         });
         return res.status(400).json({
-          status: "failed",
+          success: false,
           message: "At least one seller is required"
         });
       }
@@ -80,7 +83,7 @@ class SaleDeedController {
           ip: req.ip
         });
         return res.status(400).json({
-          status: "failed",
+          success: false,
           message: "At least one buyer is required"
         });
       }
@@ -90,12 +93,16 @@ class SaleDeedController {
         documentType,
         propertyType,
         plotType,
-        salePrice: parseFloat(salePrice),
-        circleRateAmount: parseFloat(circleRateAmount),
+        salePrice: parseFloat(salePrice) || 0,
+        circleRateAmount: parseFloat(circleRateAmount) || 0,
         area: parseFloat(area) || 0,
         areaUnit,
         propertyLength: parseFloat(propertyLength) || 0,
         propertyWidth: parseFloat(propertyWidth) || 0,
+        state,
+        district,
+        tehsil,
+        village,
         sellers,
         buyers,
         witnesses,
@@ -106,9 +113,8 @@ class SaleDeedController {
         facilities,
         dynamicFacilities,
         calculations,
-        createdBy: req.user?.id,
-        status: 'draft',
-        amount: 1500 // Base amount for sale deed
+        createdBy: req.user?.id || null,
+        status: 'draft'
       };
 
       const saleDeed = new SaleDeed(saleDeedData);
@@ -122,14 +128,13 @@ class SaleDeedController {
       });
 
       res.status(201).json({
-        status: "success",
+        success: true,
         message: "Sale deed created successfully",
         data: {
           id: saleDeed._id,
           documentType: saleDeed.documentType,
           propertyType: saleDeed.propertyType,
-          status: saleDeed.status,
-          amount: saleDeed.amount
+          status: saleDeed.status
         }
       });
 
@@ -142,7 +147,7 @@ class SaleDeedController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error",
         error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
       });
@@ -152,7 +157,14 @@ class SaleDeedController {
   static getAll = async (req, res) => {
     try {
       const { page = 1, limit = 10, status } = req.query;
-      const filter = status ? { status } : {};
+      const filter = {};
+      
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+      if (status) {
+        filter.status = status;
+      }
       
       const saleDeeds = await SaleDeed.find(filter)
         .populate('createdBy', 'name email')
@@ -163,7 +175,7 @@ class SaleDeedController {
       const total = await SaleDeed.countDocuments(filter);
 
       res.status(200).json({
-        status: "success",
+        success: true,
         data: {
           saleDeeds,
           totalPages: Math.ceil(total / limit),
@@ -179,7 +191,7 @@ class SaleDeedController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -189,18 +201,23 @@ class SaleDeedController {
     try {
       const { id } = req.params;
       
-      const saleDeed = await SaleDeed.findById(id)
+      const filter = { _id: id };
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+      
+      const saleDeed = await SaleDeed.findOne(filter)
         .populate('createdBy', 'name email');
 
       if (!saleDeed) {
         return res.status(404).json({
-          status: "failed",
+          success: false,
           message: "Sale deed not found"
         });
       }
 
       res.status(200).json({
-        status: "success",
+        success: true,
         data: { saleDeed }
       });
 
@@ -212,7 +229,7 @@ class SaleDeedController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -226,20 +243,25 @@ class SaleDeedController {
       const validStatuses = ['draft', 'submitted', 'approved', 'rejected'];
       if (!validStatuses.includes(status)) {
         return res.status(400).json({
-          status: "failed",
+          success: false,
           message: "Invalid status. Must be one of: draft, submitted, approved, rejected"
         });
       }
 
-      const saleDeed = await SaleDeed.findByIdAndUpdate(
-        id,
+      const filter = { _id: id };
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+
+      const saleDeed = await SaleDeed.findOneAndUpdate(
+        filter,
         { status },
         { new: true }
       );
 
       if (!saleDeed) {
         return res.status(404).json({
-          status: "failed",
+          success: false,
           message: "Sale deed not found"
         });
       }
@@ -251,7 +273,7 @@ class SaleDeedController {
       });
 
       res.status(200).json({
-        status: "success",
+        success: true,
         message: "Sale deed status updated successfully",
         data: { saleDeed }
       });
@@ -264,7 +286,7 @@ class SaleDeedController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -274,11 +296,16 @@ class SaleDeedController {
     try {
       const { id } = req.params;
       
-      const saleDeed = await SaleDeed.findByIdAndDelete(id);
+      const filter = { _id: id };
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+      
+      const saleDeed = await SaleDeed.findOneAndDelete(filter);
 
       if (!saleDeed) {
         return res.status(404).json({
-          status: "failed",
+          success: false,
           message: "Sale deed not found"
         });
       }
@@ -289,7 +316,7 @@ class SaleDeedController {
       });
 
       res.status(200).json({
-        status: "success",
+        success: true,
         message: "Sale deed deleted successfully"
       });
 
@@ -301,7 +328,7 @@ class SaleDeedController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -309,7 +336,13 @@ class SaleDeedController {
 
   static getStats = async (req, res) => {
     try {
+      const matchFilter = {};
+      if (req.user?.id) {
+        matchFilter.createdBy = req.user.id;
+      }
+      
       const stats = await SaleDeed.aggregate([
+        { $match: matchFilter },
         {
           $group: {
             _id: '$status',
@@ -332,7 +365,7 @@ class SaleDeedController {
       });
 
       res.status(200).json({
-        status: "success",
+        success: true,
         data: { stats: formattedStats }
       });
 
@@ -343,7 +376,7 @@ class SaleDeedController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }

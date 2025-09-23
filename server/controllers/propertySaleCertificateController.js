@@ -77,11 +77,10 @@ class PropertySaleCertificateController {
       if (!bank_select || !bank_rep_name || !bank_rep_father_name || !bank_rep_mobile || !ack_amount) {
         logger.warn('Property sale certificate creation failed: Missing required fields', { 
           userId: req.user?.id,
-          ip: req.ip,
-          userAgent: req.get('User-Agent')
+          ip: req.ip
         });
         return res.status(400).json({
-          status: "failed",
+          success: false,
           message: "Missing required fields: bank_select, bank_rep_name, bank_rep_father_name, bank_rep_mobile, ack_amount"
         });
       }
@@ -93,21 +92,21 @@ class PropertySaleCertificateController {
           ip: req.ip
         });
         return res.status(400).json({
-          status: "failed",
+          success: false,
           message: "At least one purchaser is required"
         });
       }
 
       // Validate each purchaser
       for (const purchaser of purchasers) {
-        if (!purchaser.name || !purchaser.address || !purchaser.mobile) {
+        if (!purchaser.name || !purchaser.father_name || !purchaser.addr || !purchaser.mobile) {
           logger.warn('Property sale certificate creation failed: Invalid purchaser data', { 
             userId: req.user?.id,
             purchaser: purchaser
           });
           return res.status(400).json({
-            status: "failed",
-            message: "Each purchaser must have name, address, and mobile number"
+            success: false,
+            message: "Each purchaser must have name, father_name, address, and mobile number"
           });
         }
       }
@@ -123,9 +122,9 @@ class PropertySaleCertificateController {
           post: bank_post
         },
         bank_representative: {
-          title: bank_rep_title,
+          title: bank_rep_title || 'श्री',
           name: bank_rep_name,
-          relation: bank_rep_rel,
+          relation: bank_rep_rel || 'पुत्र',
           father_name: bank_rep_father_name,
           occupation: bank_rep_occ,
           mobile: bank_rep_mobile,
@@ -133,7 +132,7 @@ class PropertySaleCertificateController {
           address: bank_rep_addr
         },
         acknowledgment: {
-          amount: parseFloat(ack_amount),
+          amount: parseFloat(ack_amount) || 0,
           amount_words: ack_amount_words
         },
         property: {
@@ -143,7 +142,7 @@ class PropertySaleCertificateController {
           category: prop_category,
           subtype: prop_subtype,
           construction_type,
-          state: prop_state,
+          state: prop_state || 'Uttar Pradesh',
           tehsil: prop_tehsil,
           ward: prop_ward,
           khasra: prop_khasra,
@@ -153,12 +152,12 @@ class PropertySaleCertificateController {
           super_area: parseFloat(super_area) || 0,
           plot_area: {
             value: parseFloat(plot_area_val) || 0,
-            unit: plot_area_unit,
+            unit: plot_area_unit || 'sqm',
             sqm: parseFloat(plot_area_sqm) || 0
           },
           road_size: {
             value: parseFloat(road_size_val) || 0,
-            unit: road_size_unit,
+            unit: road_size_unit || 'sqm',
             meters: parseFloat(road_size_m) || 0
           },
           features: {
@@ -172,7 +171,7 @@ class PropertySaleCertificateController {
         witnesses,
         payments,
         floors,
-        createdBy: req.user?.id,
+        createdBy: req.user?.id || null,
         status: 'draft',
         amount: 2000 // Base amount for property sale certificate
       };
@@ -188,7 +187,7 @@ class PropertySaleCertificateController {
       });
 
       res.status(201).json({
-        status: "success",
+        success: true,
         message: "Property sale certificate created successfully",
         data: {
           id: propertySaleCertificate._id,
@@ -208,7 +207,7 @@ class PropertySaleCertificateController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error",
         error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
       });
@@ -218,7 +217,14 @@ class PropertySaleCertificateController {
   static getAll = async (req, res) => {
     try {
       const { page = 1, limit = 10, status } = req.query;
-      const filter = status ? { status } : {};
+      const filter = {};
+      
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+      if (status) {
+        filter.status = status;
+      }
       
       const propertySaleCertificates = await PropertySaleCertificate.find(filter)
         .populate('createdBy', 'name email')
@@ -229,7 +235,7 @@ class PropertySaleCertificateController {
       const total = await PropertySaleCertificate.countDocuments(filter);
 
       res.status(200).json({
-        status: "success",
+        success: true,
         data: {
           propertySaleCertificates,
           totalPages: Math.ceil(total / limit),
@@ -245,7 +251,7 @@ class PropertySaleCertificateController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -255,18 +261,23 @@ class PropertySaleCertificateController {
     try {
       const { id } = req.params;
       
-      const propertySaleCertificate = await PropertySaleCertificate.findById(id)
+      const filter = { _id: id };
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+      
+      const propertySaleCertificate = await PropertySaleCertificate.findOne(filter)
         .populate('createdBy', 'name email');
 
       if (!propertySaleCertificate) {
         return res.status(404).json({
-          status: "failed",
+          success: false,
           message: "Property sale certificate not found"
         });
       }
 
       res.status(200).json({
-        status: "success",
+        success: true,
         data: { propertySaleCertificate }
       });
 
@@ -278,7 +289,7 @@ class PropertySaleCertificateController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -292,20 +303,25 @@ class PropertySaleCertificateController {
       const validStatuses = ['draft', 'submitted', 'approved', 'rejected'];
       if (!validStatuses.includes(status)) {
         return res.status(400).json({
-          status: "failed",
+          success: false,
           message: "Invalid status. Must be one of: draft, submitted, approved, rejected"
         });
       }
 
-      const propertySaleCertificate = await PropertySaleCertificate.findByIdAndUpdate(
-        id,
+      const filter = { _id: id };
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+
+      const propertySaleCertificate = await PropertySaleCertificate.findOneAndUpdate(
+        filter,
         { status },
         { new: true }
       );
 
       if (!propertySaleCertificate) {
         return res.status(404).json({
-          status: "failed",
+          success: false,
           message: "Property sale certificate not found"
         });
       }
@@ -317,7 +333,7 @@ class PropertySaleCertificateController {
       });
 
       res.status(200).json({
-        status: "success",
+        success: true,
         message: "Property sale certificate status updated successfully",
         data: { propertySaleCertificate }
       });
@@ -330,7 +346,7 @@ class PropertySaleCertificateController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -340,11 +356,16 @@ class PropertySaleCertificateController {
     try {
       const { id } = req.params;
       
-      const propertySaleCertificate = await PropertySaleCertificate.findByIdAndDelete(id);
+      const filter = { _id: id };
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+      
+      const propertySaleCertificate = await PropertySaleCertificate.findOneAndDelete(filter);
 
       if (!propertySaleCertificate) {
         return res.status(404).json({
-          status: "failed",
+          success: false,
           message: "Property sale certificate not found"
         });
       }
@@ -355,7 +376,7 @@ class PropertySaleCertificateController {
       });
 
       res.status(200).json({
-        status: "success",
+        success: true,
         message: "Property sale certificate deleted successfully"
       });
 
@@ -367,7 +388,7 @@ class PropertySaleCertificateController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -375,7 +396,13 @@ class PropertySaleCertificateController {
 
   static getStats = async (req, res) => {
     try {
+      const matchFilter = {};
+      if (req.user?.id) {
+        matchFilter.createdBy = req.user.id;
+      }
+      
       const stats = await PropertySaleCertificate.aggregate([
+        { $match: matchFilter },
         {
           $group: {
             _id: '$status',
@@ -398,7 +425,7 @@ class PropertySaleCertificateController {
       });
 
       res.status(200).json({
-        status: "success",
+        success: true,
         data: { stats: formattedStats }
       });
 
@@ -409,7 +436,7 @@ class PropertySaleCertificateController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }

@@ -45,11 +45,10 @@ class PowerOfAttorneyController {
       if (!executionDate || !state || !district || !tehsil || !subRegistrarOffice) {
         logger.warn('Power of Attorney creation failed: Missing required fields', { 
           userId: req.user?.id,
-          ip: req.ip,
-          userAgent: req.get('User-Agent')
+          ip: req.ip
         });
         return res.status(400).json({
-          status: "failed",
+          success: false,
           message: "Missing required fields: executionDate, state, district, tehsil, subRegistrarOffice"
         });
       }
@@ -61,7 +60,7 @@ class PowerOfAttorneyController {
           ip: req.ip
         });
         return res.status(400).json({
-          status: "failed",
+          success: false,
           message: "At least one principal (karta) is required"
         });
       }
@@ -72,7 +71,7 @@ class PowerOfAttorneyController {
           ip: req.ip
         });
         return res.status(400).json({
-          status: "failed",
+          success: false,
           message: "At least one agent is required"
         });
       }
@@ -83,7 +82,7 @@ class PowerOfAttorneyController {
           ip: req.ip
         });
         return res.status(400).json({
-          status: "failed",
+          success: false,
           message: "At least one witness is required"
         });
       }
@@ -95,7 +94,7 @@ class PowerOfAttorneyController {
           ip: req.ip
         });
         return res.status(400).json({
-          status: "failed",
+          success: false,
           message: "At least one power must be granted"
         });
       }
@@ -129,10 +128,10 @@ class PowerOfAttorneyController {
         witnessParties,
         powers,
         otherPowersText,
-        generalPowerCheckbox,
+        generalPowerCheckbox: generalPowerCheckbox === true || generalPowerCheckbox === 'true',
         properties,
         files,
-        createdBy: req.user?.id,
+        createdBy: req.user?.id || null,
         status: 'draft',
         amount: 1200 // Base amount for Power of Attorney
       };
@@ -151,7 +150,7 @@ class PowerOfAttorneyController {
       });
 
       res.status(201).json({
-        status: "success",
+        success: true,
         message: "Power of Attorney created successfully",
         data: {
           id: powerOfAttorney._id,
@@ -172,7 +171,7 @@ class PowerOfAttorneyController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error",
         error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
       });
@@ -182,11 +181,13 @@ class PowerOfAttorneyController {
   static getAll = async (req, res) => {
     try {
       const { page = 1, limit = 10, status } = req.query;
-      const filter = status ? { status } : {};
+      const filter = {};
       
-      // If user is not admin, only show their own records
-      if (req.user?.role !== 'admin') {
-        filter.createdBy = req.user?.id;
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+      if (status) {
+        filter.status = status;
       }
       
       const powerOfAttorneys = await PowerOfAttorney.find(filter)
@@ -198,7 +199,7 @@ class PowerOfAttorneyController {
       const total = await PowerOfAttorney.countDocuments(filter);
 
       res.status(200).json({
-        status: "success",
+        success: true,
         data: {
           powerOfAttorneys,
           totalPages: Math.ceil(total / limit),
@@ -214,7 +215,7 @@ class PowerOfAttorneyController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -224,26 +225,23 @@ class PowerOfAttorneyController {
     try {
       const { id } = req.params;
       
-      const powerOfAttorney = await PowerOfAttorney.findById(id)
+      const filter = { _id: id };
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+      
+      const powerOfAttorney = await PowerOfAttorney.findOne(filter)
         .populate('createdBy', 'name email');
 
       if (!powerOfAttorney) {
         return res.status(404).json({
-          status: "failed",
+          success: false,
           message: "Power of Attorney not found"
         });
       }
 
-      // Check if user has access to this record
-      if (req.user?.role !== 'admin' && powerOfAttorney.createdBy._id.toString() !== req.user?.id) {
-        return res.status(403).json({
-          status: "failed",
-          message: "Access denied"
-        });
-      }
-
       res.status(200).json({
-        status: "success",
+        success: true,
         data: { powerOfAttorney }
       });
 
@@ -255,7 +253,7 @@ class PowerOfAttorneyController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -269,29 +267,26 @@ class PowerOfAttorneyController {
       const validStatuses = ['draft', 'submitted', 'approved', 'rejected'];
       if (!validStatuses.includes(status)) {
         return res.status(400).json({
-          status: "failed",
+          success: false,
           message: "Invalid status. Must be one of: draft, submitted, approved, rejected"
         });
       }
 
-      const powerOfAttorney = await PowerOfAttorney.findByIdAndUpdate(
-        id,
+      const filter = { _id: id };
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+
+      const powerOfAttorney = await PowerOfAttorney.findOneAndUpdate(
+        filter,
         { status },
         { new: true }
       );
 
       if (!powerOfAttorney) {
         return res.status(404).json({
-          status: "failed",
+          success: false,
           message: "Power of Attorney not found"
-        });
-      }
-
-      // Check if user has access to this record
-      if (req.user?.role !== 'admin' && powerOfAttorney.createdBy.toString() !== req.user?.id) {
-        return res.status(403).json({
-          status: "failed",
-          message: "Access denied"
         });
       }
 
@@ -302,7 +297,7 @@ class PowerOfAttorneyController {
       });
 
       res.status(200).json({
-        status: "success",
+        success: true,
         message: "Power of Attorney status updated successfully",
         data: { powerOfAttorney }
       });
@@ -315,7 +310,7 @@ class PowerOfAttorneyController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -325,24 +320,19 @@ class PowerOfAttorneyController {
     try {
       const { id } = req.params;
       
-      const powerOfAttorney = await PowerOfAttorney.findById(id);
+      const filter = { _id: id };
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+      
+      const powerOfAttorney = await PowerOfAttorney.findOneAndDelete(filter);
 
       if (!powerOfAttorney) {
         return res.status(404).json({
-          status: "failed",
+          success: false,
           message: "Power of Attorney not found"
         });
       }
-
-      // Check if user has access to this record
-      if (req.user?.role !== 'admin' && powerOfAttorney.createdBy.toString() !== req.user?.id) {
-        return res.status(403).json({
-          status: "failed",
-          message: "Access denied"
-        });
-      }
-
-      await PowerOfAttorney.findByIdAndDelete(id);
 
       logger.info('Power of Attorney deleted', { 
         powerOfAttorneyId: id,
@@ -350,7 +340,7 @@ class PowerOfAttorneyController {
       });
 
       res.status(200).json({
-        status: "success",
+        success: true,
         message: "Power of Attorney deleted successfully"
       });
 
@@ -362,7 +352,7 @@ class PowerOfAttorneyController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -370,15 +360,13 @@ class PowerOfAttorneyController {
 
   static getStats = async (req, res) => {
     try {
-      const filter = {};
-      
-      // If user is not admin, only show their own stats
-      if (req.user?.role !== 'admin') {
-        filter.createdBy = req.user?.id;
+      const matchFilter = {};
+      if (req.user?.id) {
+        matchFilter.createdBy = req.user.id;
       }
-
+      
       const stats = await PowerOfAttorney.aggregate([
-        { $match: filter },
+        { $match: matchFilter },
         {
           $group: {
             _id: '$status',
@@ -401,7 +389,7 @@ class PowerOfAttorneyController {
       });
 
       res.status(200).json({
-        status: "success",
+        success: true,
         data: { stats: formattedStats }
       });
 
@@ -412,7 +400,7 @@ class PowerOfAttorneyController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -436,7 +424,7 @@ class PowerOfAttorneyController {
       const total = await PowerOfAttorney.countDocuments(filter);
 
       res.status(200).json({
-        status: "success",
+        success: true,
         data: {
           powerOfAttorneys,
           totalPages: Math.ceil(total / limit),
@@ -452,7 +440,7 @@ class PowerOfAttorneyController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }

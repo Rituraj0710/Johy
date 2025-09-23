@@ -21,169 +21,76 @@ const sanitizeInput = (input) => {
 };
 
 class WillDeedController {
-  static submit = async (req, res) => {
-    try {
-      const jsonPart = req.body?.data ? JSON.parse(req.body.data) : null;
-      if (!jsonPart) {
-        return res.status(400).json({ status: 'failed', message: 'Missing form data' });
-      }
-
-      const sanitizedData = sanitizeInput(jsonPart);
-
-      const willDeedData = {
-        meta: sanitizedData.meta || {},
-        testator: sanitizedData.testator || {},
-        beneficiaries: sanitizedData.beneficiaries || [],
-        executors: sanitizedData.executors || [],
-        witnesses: sanitizedData.witnesses || [],
-        immovables: sanitizedData.immovables || [],
-        movables: sanitizedData.movables || [],
-        rules: sanitizedData.rules || [],
-        conditions: sanitizedData.conditions || [],
-        createdBy: req.user?._id
-      };
-
-      const uploads = { testatorId: '', testatorPhoto: '', personIds: [], personPhotos: [] };
-      (req.files || []).forEach((f) => {
-        if (f.fieldname === 'testator_id') uploads.testatorId = f.path;
-        else if (f.fieldname === 'testator_photo') uploads.testatorPhoto = f.path;
-        else if (f.fieldname.startsWith('person_id_')) uploads.personIds.push(f.path);
-        else if (f.fieldname.startsWith('person_photo_')) uploads.personPhotos.push(f.path);
-      });
-      willDeedData.uploads = uploads;
-
-      const willDeed = new WillDeed(willDeedData);
-      await willDeed.save();
-
-      return res.status(201).json({ status: 'success', message: 'Will Deed submitted', data: { id: willDeed._id } });
-    } catch (error) {
-      logger.error('Will deed submit error', { 
-        error: error.message, 
-        stack: error.stack, 
-        userId: req.user?._id,
-        validationErrors: error.errors 
-      });
-      return res.status(500).json({ 
-        status: 'failed', 
-        message: 'Internal server error',
-        error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
-      });
-    }
-  }
   static create = async (req, res) => {
     try {
       // Sanitize all input data
       const sanitizedData = sanitizeInput(req.body);
       
       const {
-        testator_name,
-        testator_father_name,
-        testator_address,
-        testator_mobile,
-        testator_email,
-        testator_aadhaar,
-        testator_occupation,
-        testator_marital_status,
-        testator_spouse_name,
-        testator_children = [],
-        testator_assets = [],
-        testator_beneficiaries = [],
-        testator_executors = [],
-        testator_witnesses = [],
-        will_date,
-        will_place,
-        will_type,
-        will_purpose,
-        will_conditions = [],
-        will_special_instructions
+        testator,
+        beneficiaries = [],
+        executors = [],
+        witnesses = [],
+        immovables = [],
+        movables = [],
+        rules = [],
+        conditions = [],
+        meta = {}
       } = sanitizedData;
 
       // Validation
-      if (!testator_name || !testator_father_name || !testator_address || !testator_mobile || !testator_aadhaar) {
-        logger.warn('Will deed creation failed: Missing required fields', { 
+      if (!testator || !testator.name) {
+        logger.warn('Will deed creation failed: Missing testator information', { 
           userId: req.user?.id,
-          ip: req.ip,
-          userAgent: req.get('User-Agent')
+          ip: req.ip
         });
         return res.status(400).json({
-          status: "failed",
-          message: "Missing required fields: testator_name, testator_father_name, testator_address, testator_mobile, testator_aadhaar"
-        });
-      }
-
-      // Validate Aadhaar number (12 digits)
-      const aadhaarRegex = /^[0-9]{12}$/;
-      if (!aadhaarRegex.test(testator_aadhaar)) {
-        return res.status(400).json({
-          status: "failed",
-          message: "Invalid Aadhaar number. Must be 12 digits."
-        });
-      }
-
-      // Validate mobile number (10 digits)
-      const mobileRegex = /^[0-9]{10}$/;
-      if (!mobileRegex.test(testator_mobile)) {
-        return res.status(400).json({
-          status: "failed",
-          message: "Invalid mobile number. Must be 10 digits."
+          success: false,
+          message: "Testator information is required"
         });
       }
 
       // Validate beneficiaries
-      if (!testator_beneficiaries || testator_beneficiaries.length === 0) {
+      if (!beneficiaries || beneficiaries.length === 0) {
         logger.warn('Will deed creation failed: No beneficiaries provided', { 
           userId: req.user?.id,
           ip: req.ip
         });
         return res.status(400).json({
-          status: "failed",
+          success: false,
           message: "At least one beneficiary is required"
         });
       }
 
-      // Validate each beneficiary
-      for (const beneficiary of testator_beneficiaries) {
-        if (!beneficiary.name || !beneficiary.relationship || !beneficiary.share) {
-          logger.warn('Will deed creation failed: Invalid beneficiary data', { 
-            userId: req.user?.id,
-            beneficiary: beneficiary
-          });
-          return res.status(400).json({
-            status: "failed",
-            message: "Each beneficiary must have name, relationship, and share"
-          });
-        }
+      // Validate witnesses (minimum 2 required)
+      if (!witnesses || witnesses.length < 2) {
+        logger.warn('Will deed creation failed: Insufficient witnesses', { 
+          userId: req.user?.id,
+          ip: req.ip
+        });
+        return res.status(400).json({
+          success: false,
+          message: "At least two witnesses are required"
+        });
       }
 
       // Create will deed
       const willDeedData = {
-        testator: {
-          name: testator_name,
-          father_name: testator_father_name,
-          address: testator_address,
-          mobile: testator_mobile,
-          email: testator_email,
-          aadhaar: testator_aadhaar,
-          occupation: testator_occupation,
-          marital_status: testator_marital_status,
-          spouse_name: testator_spouse_name
+        meta: {
+          draftBy: meta.draftBy || 'Jyoh Services Pvt. Ltd.',
+          propertyType: meta.propertyType || 'both',
+          status: 'draft',
+          createdAt: new Date()
         },
-        children: testator_children,
-        assets: testator_assets,
-        beneficiaries: testator_beneficiaries,
-        executors: testator_executors,
-        witnesses: testator_witnesses,
-        will_details: {
-          date: new Date(will_date),
-          place: will_place,
-          type: will_type,
-          purpose: will_purpose,
-          conditions: will_conditions,
-          special_instructions: will_special_instructions
-        },
-        createdBy: req.user?.id,
-        status: 'draft',
-        amount: 1800 // Base amount for will deed
+        testator,
+        beneficiaries,
+        executors,
+        witnesses,
+        immovables,
+        movables,
+        rules,
+        conditions,
+        createdBy: req.user?.id || null
       };
 
       const willDeed = new WillDeed(willDeedData);
@@ -192,17 +99,17 @@ class WillDeedController {
       logger.info('Will deed created successfully', { 
         willDeedId: willDeed._id,
         userId: req.user?.id,
-        testator_name
+        testatorName: testator.name
       });
 
       res.status(201).json({
-        status: "success",
+        success: true,
         message: "Will deed created successfully",
         data: {
           id: willDeed._id,
-          testator_name: willDeed.testator.name,
-          status: willDeed.status,
-          amount: willDeed.amount
+          testatorName: willDeed.testator.name,
+          status: willDeed.meta.status,
+          createdAt: willDeed.meta.createdAt
         }
       });
 
@@ -215,8 +122,70 @@ class WillDeedController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error",
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+      });
+    }
+  };
+
+  static submit = async (req, res) => {
+    try {
+      const jsonPart = req.body?.data ? JSON.parse(req.body.data) : req.body;
+      if (!jsonPart) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Missing form data' 
+        });
+      }
+
+      const sanitizedData = sanitizeInput(jsonPart);
+
+      const willDeedData = {
+        meta: sanitizedData.meta || { status: 'submitted' },
+        testator: sanitizedData.testator || {},
+        beneficiaries: sanitizedData.beneficiaries || [],
+        executors: sanitizedData.executors || [],
+        witnesses: sanitizedData.witnesses || [],
+        immovables: sanitizedData.immovables || [],
+        movables: sanitizedData.movables || [],
+        rules: sanitizedData.rules || [],
+        conditions: sanitizedData.conditions || [],
+        createdBy: req.user?._id || null
+      };
+
+      // Handle file uploads
+      const uploads = { testatorId: '', testatorPhoto: '', personIds: [], personPhotos: [] };
+      (req.files || []).forEach((f) => {
+        if (f.fieldname === 'testator_id') uploads.testatorId = f.path;
+        else if (f.fieldname === 'testator_photo') uploads.testatorPhoto = f.path;
+        else if (f.fieldname.startsWith('person_id_')) uploads.personIds.push(f.path);
+        else if (f.fieldname.startsWith('person_photo_')) uploads.personPhotos.push(f.path);
+      });
+      willDeedData.uploads = uploads;
+
+      const willDeed = new WillDeed(willDeedData);
+      await willDeed.save();
+
+      logger.info('Will deed submitted successfully', { 
+        willDeedId: willDeed._id,
+        userId: req.user?._id
+      });
+
+      return res.status(201).json({ 
+        success: true, 
+        message: 'Will deed submitted successfully', 
+        data: { id: willDeed._id } 
+      });
+    } catch (error) {
+      logger.error('Will deed submit error', { 
+        error: error.message, 
+        stack: error.stack, 
+        userId: req.user?._id
+      });
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Internal server error',
         error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
       });
     }
@@ -226,6 +195,7 @@ class WillDeedController {
     try {
       const { page = 1, limit = 10, status } = req.query;
       const filter = {};
+      
       if (req.user?._id) {
         filter.createdBy = req.user._id;
       }
@@ -242,7 +212,7 @@ class WillDeedController {
       const total = await WillDeed.countDocuments(filter);
 
       res.status(200).json({
-        status: "success",
+        success: true,
         data: {
           willDeeds,
           totalPages: Math.ceil(total / limit),
@@ -258,7 +228,7 @@ class WillDeedController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -278,13 +248,13 @@ class WillDeedController {
 
       if (!willDeed) {
         return res.status(404).json({
-          status: "failed",
+          success: false,
           message: "Will deed not found"
         });
       }
 
       res.status(200).json({
-        status: "success",
+        success: true,
         data: { willDeed }
       });
 
@@ -296,7 +266,7 @@ class WillDeedController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -310,7 +280,7 @@ class WillDeedController {
       const validStatuses = ['draft', 'submitted', 'approved', 'rejected'];
       if (!validStatuses.includes(status)) {
         return res.status(400).json({
-          status: "failed",
+          success: false,
           message: "Invalid status. Must be one of: draft, submitted, approved, rejected"
         });
       }
@@ -328,7 +298,7 @@ class WillDeedController {
 
       if (!willDeed) {
         return res.status(404).json({
-          status: "failed",
+          success: false,
           message: "Will deed not found"
         });
       }
@@ -340,7 +310,7 @@ class WillDeedController {
       });
 
       res.status(200).json({
-        status: "success",
+        success: true,
         message: "Will deed status updated successfully",
         data: { willDeed }
       });
@@ -353,7 +323,7 @@ class WillDeedController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -372,7 +342,7 @@ class WillDeedController {
 
       if (!willDeed) {
         return res.status(404).json({
-          status: "failed",
+          success: false,
           message: "Will deed not found"
         });
       }
@@ -383,7 +353,7 @@ class WillDeedController {
       });
 
       res.status(200).json({
-        status: "success",
+        success: true,
         message: "Will deed deleted successfully"
       });
 
@@ -395,7 +365,7 @@ class WillDeedController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -432,7 +402,7 @@ class WillDeedController {
       });
 
       res.status(200).json({
-        status: "success",
+        success: true,
         data: { stats: formattedStats }
       });
 
@@ -443,7 +413,7 @@ class WillDeedController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }

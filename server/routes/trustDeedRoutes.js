@@ -1,13 +1,13 @@
-// ...existing code...
+import express from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-// import passport from "passport";
+import passport from "passport";
 import accessTokenAutoRefresh from "../middlewares/accessTokenAutoRefresh.js";
 import setAuthHeader from "../middlewares/setAuthHeader.js";
-// ...existing code...
+import TrustDeedController from "../controllers/trustDeedController.js";
 
-// ...existing code...
+const router = express.Router();
 
 // Create upload directory for trust deeds
 const uploadRoot = path.join(process.cwd(), "uploads", "trustdeed");
@@ -52,77 +52,6 @@ const upload = multer({
   }
 });
 
-// // POST /api/trust-deed - Create a new trust deed
-// router.post(
-//   "/",
-//   setAuthHeader,
-//   accessTokenAutoRefresh,
-//   // Optional: require authentication by uncommenting the line below
-//   // passport.authenticate('userOrAgent', { session: false }),
-//   upload.any(),
-//   TrustDeedController.create
-// );
-
-// // GET /api/trust-deed - Get all trust deeds with pagination and filtering
-// router.get(
-//   "/",
-//   setAuthHeader,
-//   accessTokenAutoRefresh,
-//   // Optional: require authentication by uncommenting the line below
-//   // passport.authenticate('userOrAgent', { session: false }),
-//   TrustDeedController.getAll
-// );
-
-// // GET /api/trust-deed/stats - Get statistics for dashboard
-// router.get(
-//   "/stats",
-//   setAuthHeader,
-//   accessTokenAutoRefresh,
-//   // Optional: require authentication by uncommenting the line below
-//   // passport.authenticate('userOrAgent', { session: false }),
-//   TrustDeedController.getStats
-// );
-
-// // GET /api/trust-deed/:id - Get a specific trust deed by ID
-// router.get(
-//   "/:id",
-//   setAuthHeader,
-//   accessTokenAutoRefresh,
-//   // Optional: require authentication by uncommenting the line below
-//   // passport.authenticate('userOrAgent', { session: false }),
-//   TrustDeedController.getById
-// );
-
-// // PUT /api/trust-deed/:id - Update a trust deed
-// router.put(
-//   "/:id",
-//   setAuthHeader,
-//   accessTokenAutoRefresh,
-//   // Optional: require authentication by uncommenting the line below
-//   // passport.authenticate('userOrAgent', { session: false }),
-//   upload.any(),
-//   TrustDeedController.update
-// );
-
-// // DELETE /api/trust-deed/:id - Delete a trust deed
-// router.delete(
-//   "/:id",
-//   setAuthHeader,
-//   accessTokenAutoRefresh,
-//   // Optional: require authentication by uncommenting the line below
-//   // passport.authenticate('userOrAgent', { session: false }),
-//   TrustDeedController.delete
-// );
-
-// export default router;
-
-
-import express from "express";
-import passport from "passport";
-import TrustDeedController from "../controllers/trustDeedController.js";
-
-const router = express.Router();
-
 // Define upload fields for Multer
 const uploadFields = [
   { name: "trusteeIdCard_1", maxCount: 1 },
@@ -141,7 +70,6 @@ const uploadFields = [
   { name: "witnessPhoto_2", maxCount: 1 },
 ];
 
-// Apply authentication middleware to all routes
 // Apply optional authentication middleware to all routes
 router.use((req, res, next) => {
   passport.authenticate('userOrAgent', { session: false }, (err, user, info) => {
@@ -157,6 +85,7 @@ router.use((req, res, next) => {
 router.use(accessTokenAutoRefresh);
 router.use(setAuthHeader);
 
+// Routes
 router.post("/", upload.fields(uploadFields), TrustDeedController.create);
 router.get("/", TrustDeedController.getAll);
 router.get("/stats", TrustDeedController.getStats);
@@ -164,7 +93,7 @@ router.get("/:id", TrustDeedController.getById);
 router.put("/:id/status", TrustDeedController.updateStatus);
 router.delete("/:id", TrustDeedController.delete);
 
-// Payment initialization endpoint (commented out - method not implemented)
-// router.post("/payment/initialize", TrustDeedController.initializePayment);
+// Payment initialization endpoint
+router.post("/payment/initialize", TrustDeedController.initializePayment);
 
 export default router;

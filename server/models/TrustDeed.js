@@ -1,136 +1,215 @@
-// import mongoose from "mongoose";
-
-// const fileSchema = new mongoose.Schema({
-//   field: {type: String, required: true},
-//   path: {type: String, required: true},
-//   originalName: {type: String},
-//   mimeType: {type: String},
-//   size: {type: Number},
-// }, { _id: false });
-
-// const trusteeSchema = new mongoose.Schema({
-//   salutation: { type: String, required: true, enum: ['श्री', 'श्रीमती'] },
-//   position: { type: String, required: true, enum: ['अध्यक्ष', 'सचिव', 'कोषाध्यक्ष', 'सदस्य'] },
-//   name: { type: String, required: true, maxlength: 100 },
-//   relation: { type: String, required: true, maxlength: 100 }, // पिता/पति का नाम
-//   address: { type: String, required: true, maxlength: 500 },
-//   mobile: { type: String, required: true, match: /^[6-9]\d{9}$/ },
-//   idType: { type: String, required: true, enum: ['आधार कार्ड', 'पैन कार्ड'] },
-//   idNumber: { type: String, required: true, maxlength: 20 },
-//   idCardFile: { type: String }, // File path
-//   photoFile: { type: String }, // File path
-// }, { _id: false });
-
-// const witnessSchema = new mongoose.Schema({
-//   name: { type: String, maxlength: 100 },
-//   relation: { type: String, maxlength: 100 }, // पिता/पति का नाम
-//   address: { type: String, maxlength: 500 },
-//   mobile: { type: String, match: /^[6-9]\d{9}$/ },
-//   idType: { type: String, enum: ['आधार कार्ड', 'पैन कार्ड'] },
-//   idNumber: { type: String, maxlength: 20 },
-//   idCardFile: { type: String }, // File path
-//   photoFile: { type: String }, // File path
-// }, { _id: false });
-
-// const trustDeedSchema = new mongoose.Schema({
-//   // Trust Details
-//   trustName: { type: String, required: true, maxlength: 100 },
-//   trustAddress: { type: String, required: true, maxlength: 500 },
-
-//   // Initial Amount
-//   startingAmount: {
-//     number: { type: String, required: true },
-//     words: { type: String, required: true, maxlength: 200 }
-//   },
-
-//   // Trustees (dynamic array)
-//   trustees: [trusteeSchema],
-
-//   // Functional Domains (dynamic array)
-//   functionalDomains: [{ type: String, maxlength: 200 }],
-
-//   // Purposes (predefined checkboxes + custom)
-//   purposes: [{ type: String, maxlength: 200 }],
-//   otherPurposes: [{ type: String, maxlength: 200 }],
-
-//   // Terms and Conditions (predefined checkboxes + custom)
-//   terms: [{ type: String, maxlength: 200 }],
-//   otherTerms: [{ type: String, maxlength: 200 }],
-
-//   // Witnesses
-//   witnesses: [witnessSchema],
-
-//   // File uploads
-//   files: { type: [fileSchema], default: [] },
-
-//   // Metadata
-//   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
-//   created_at: { type: Date, default: Date.now },
-//   updated_at: { type: Date, default: Date.now },
-// }, { collection: 'trust_deeds' });
-
-// // Update the updated_at field before saving
-// trustDeedSchema.pre('save', function(next) {
-//   this.updated_at = Date.now();
-//   next();
-// });
-
-// // Indexes for better query performance
-// trustDeedSchema.index({ trustName: 1 });
-// trustDeedSchema.index({ createdBy: 1 });
-// trustDeedSchema.index({ created_at: -1 });
-
-// const TrustDeedModel = mongoose.model("TrustDeed", trustDeedSchema);
-
-// export default TrustDeedModel;
-
 import mongoose from "mongoose";
 
 const trusteeSchema = new mongoose.Schema({
-  salutation: { type: String, required: true, enum: ["श्री", "श्रीमती"] },
-  position: { type: String, required: true, enum: ["अध्यक्ष", "सचिव", "कोषाध्यक्ष", "सदस्य"] },
-  name: { type: String, required: true, trim: true, maxLength: 100 },
-  relation: { type: String, required: true, trim: true, maxLength: 100 },
-  address: { type: String, required: true, trim: true, maxLength: 500 },
-  mobile: { type: String, required: true, match: /^[6-9]\d{9}$/ },
-  idType: { type: String, required: true, enum: ["आधार कार्ड", "पैन कार्ड"] },
-  idNumber: { type: String, required: true, trim: true, maxLength: 20 },
+  salutation: { 
+    type: String, 
+    required: true, 
+    enum: ["श्री", "श्रीमती"], 
+    default: "श्री" 
+  },
+  position: { 
+    type: String, 
+    required: true, 
+    enum: ["अध्यक्ष", "सचिव", "कोषाध्यक्ष", "सदस्य"], 
+    default: "सदस्य" 
+  },
+  name: { 
+    type: String, 
+    required: true, 
+    trim: true, 
+    maxLength: 100 
+  },
+  relation: { 
+    type: String, 
+    required: true, 
+    trim: true, 
+    maxLength: 100 
+  },
+  address: { 
+    type: String, 
+    required: true, 
+    trim: true, 
+    maxLength: 500 
+  },
+  mobile: { 
+    type: String, 
+    required: true, 
+    match: /^[6-9]\d{9}$/ 
+  },
+  idType: { 
+    type: String, 
+    required: true, 
+    enum: ["आधार कार्ड", "पैन कार्ड"], 
+    default: "आधार कार्ड" 
+  },
+  idNumber: { 
+    type: String, 
+    required: true, 
+    trim: true, 
+    maxLength: 20 
+  },
   idCard: { type: String }, // Filename for ID card upload
   photo: { type: String }, // Filename for photo upload
-});
+}, { _id: false });
 
 const witnessSchema = new mongoose.Schema({
-  name: { type: String, trim: true, maxLength: 100 },
-  relation: { type: String, trim: true, maxLength: 100 },
-  address: { type: String, trim: true, maxLength: 500 },
-  mobile: { type: String, match: /^[6-9]\d{9}$/ },
-  idType: { type: String, enum: ["आधार कार्ड", "पैन कार्ड"] },
-  idNumber: { type: String, trim: true, maxLength: 20 },
+  name: { 
+    type: String, 
+    trim: true, 
+    maxLength: 100 
+  },
+  relation: { 
+    type: String, 
+    trim: true, 
+    maxLength: 100 
+  },
+  address: { 
+    type: String, 
+    trim: true, 
+    maxLength: 500 
+  },
+  mobile: { 
+    type: String, 
+    match: /^[6-9]\d{9}$/ 
+  },
+  idType: { 
+    type: String, 
+    enum: ["आधार कार्ड", "पैन कार्ड"], 
+    default: "आधार कार्ड" 
+  },
+  idNumber: { 
+    type: String, 
+    trim: true, 
+    maxLength: 20 
+  },
   idCard: { type: String }, // Filename for ID card upload
   photo: { type: String }, // Filename for photo upload
-});
+}, { _id: false });
 
 const trustDeedSchema = new mongoose.Schema({
-  trustName: { type: String, required: true, trim: true, maxLength: 100 },
-  trustAddress: { type: String, required: true, trim: true, maxLength: 500 },
+  // Trust Basic Information
+  trustName: { 
+    type: String, 
+    required: [true, 'Trust name is required'], 
+    trim: true, 
+    maxLength: 100 
+  },
+  trustAddress: { 
+    type: String, 
+    required: [true, 'Trust address is required'], 
+    trim: true, 
+    maxLength: 500 
+  },
+  
+  // Starting Amount
   startingAmount: {
-    number: { type: String, required: true, match: /^\d+$/ },
-    words: { type: String, required: true },
+    number: { 
+      type: String, 
+      required: [true, 'Starting amount in numbers is required'], 
+      match: /^\d+$/ 
+    },
+    words: { 
+      type: String, 
+      required: [true, 'Starting amount in words is required'],
+      trim: true
+    },
   },
-  trustees: { type: [trusteeSchema], required: true, validate: [v => v.length >= 1, "At least one trustee is required"] },
-  functionalDomains: [{ type: String, trim: true, maxLength: 200 }],
-  purposes: [{ type: String, trim: true, maxLength: 200 }],
-  otherPurposes: [{ type: String, trim: true, maxLength: 200 }],
-  terms: [{ type: String, trim: true, maxLength: 200 }],
-  otherTerms: [{ type: String, trim: true, maxLength: 200 }],
-  witnesses: { type: [witnessSchema], default: [] },
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  
+  // Trustees
+  trustees: { 
+    type: [trusteeSchema], 
+    required: true, 
+    validate: [v => v.length >= 1, "At least one trustee is required"] 
+  },
+  
+  // Functional Areas
+  functionalDomains: [{ 
+    type: String, 
+    trim: true, 
+    maxLength: 200 
+  }],
+  
+  // Purposes
+  purposes: [{ 
+    type: String, 
+    trim: true, 
+    maxLength: 200 
+  }],
+  otherPurposes: [{ 
+    type: String, 
+    trim: true, 
+    maxLength: 200 
+  }],
+  
+  // Terms and Conditions
+  terms: [{ 
+    type: String, 
+    trim: true, 
+    maxLength: 200 
+  }],
+  otherTerms: [{ 
+    type: String, 
+    trim: true, 
+    maxLength: 200 
+  }],
+  
+  // Witnesses
+  witnesses: { 
+    type: [witnessSchema], 
+    default: [] 
+  },
+  
+  // Metadata
+  createdBy: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'User', 
+    default: null 
+  },
   meta: {
-    status: { type: String, enum: ["draft", "submitted", "approved", "rejected"], default: "draft" },
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now },
+    status: { 
+      type: String, 
+      enum: ["draft", "submitted", "approved", "rejected"], 
+      default: "draft" 
+    },
+    createdAt: { 
+      type: Date, 
+      default: Date.now 
+    },
+    updatedAt: { 
+      type: Date, 
+      default: Date.now 
+    },
   },
+}, { 
+  collection: 'trust_deeds',
+  timestamps: true 
 });
+
+// Update the meta.updatedAt field before saving
+trustDeedSchema.pre('save', function(next) {
+  this.meta.updatedAt = Date.now();
+  next();
+});
+
+// Indexes for better query performance
+trustDeedSchema.index({ trustName: 1 });
+trustDeedSchema.index({ createdBy: 1 });
+trustDeedSchema.index({ 'meta.status': 1 });
+trustDeedSchema.index({ 'meta.createdAt': -1 });
+
+// Virtual for trustee count
+trustDeedSchema.virtual('trusteeCount').get(function() {
+  return this.trustees ? this.trustees.length : 0;
+});
+
+// Virtual for witness count
+trustDeedSchema.virtual('witnessCount').get(function() {
+  return this.witnesses ? this.witnesses.length : 0;
+});
+
+// Ensure virtual fields are serialized
+trustDeedSchema.set('toJSON', { virtuals: true });
+trustDeedSchema.set('toObject', { virtuals: true });
 
 const TrustDeed = mongoose.model("TrustDeed", trustDeedSchema);
 

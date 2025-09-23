@@ -27,6 +27,7 @@ router.use(setAuthHeader);
 // Multer setup for will deed uploads
 const uploadsDir = path.join(process.cwd(), 'uploads', 'will-deeds');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadsDir),
   filename: (_req, file, cb) => {
@@ -35,11 +36,30 @@ const storage = multer.diskStorage({
     cb(null, `${unique}${ext}`);
   }
 });
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
+
+const upload = multer({ 
+  storage, 
+  limits: { 
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+    files: 20 // Maximum 20 files
+  },
+  fileFilter: (req, file, cb) => {
+    // Allow common document and image formats
+    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx/;
+    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = allowedTypes.test(file.mimetype);
+
+    if (mimetype && extname) {
+      return cb(null, true);
+    } else {
+      cb(new Error('Only images and documents are allowed'));
+    }
+  }
+});
 
 // Routes
 router.post("/submit", upload.any(), WillDeedController.submit);
-router.post("/", WillDeedController.create);
+router.post("/", upload.any(), WillDeedController.create);
 router.get("/", WillDeedController.getAll);
 router.get("/stats", WillDeedController.getStats);
 router.get("/:id", WillDeedController.getById);

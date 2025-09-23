@@ -51,10 +51,14 @@ const uploadFields = [
   { name: "sellerPhoto_1", maxCount: 1 },
   { name: "sellerIdCard_2", maxCount: 1 },
   { name: "sellerPhoto_2", maxCount: 1 },
+  { name: "sellerIdCard_3", maxCount: 1 },
+  { name: "sellerPhoto_3", maxCount: 1 },
   { name: "buyerIdCard_1", maxCount: 1 },
   { name: "buyerPhoto_1", maxCount: 1 },
   { name: "buyerIdCard_2", maxCount: 1 },
   { name: "buyerPhoto_2", maxCount: 1 },
+  { name: "buyerIdCard_3", maxCount: 1 },
+  { name: "buyerPhoto_3", maxCount: 1 },
   { name: "witnessIdCard_1", maxCount: 1 },
   { name: "witnessPhoto_1", maxCount: 1 },
   { name: "witnessIdCard_2", maxCount: 1 },
@@ -63,7 +67,6 @@ const uploadFields = [
   { name: "propertyDocuments", maxCount: 5 }
 ];
 
-// Apply authentication middleware to all routes
 // Apply optional authentication middleware to all routes
 router.use((req, res, next) => {
   passport.authenticate('userOrAgent', { session: false }, (err, user, info) => {

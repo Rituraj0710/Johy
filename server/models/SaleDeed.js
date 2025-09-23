@@ -1,215 +1,158 @@
-// import mongoose from "mongoose";
-
-// const fileSchema = new mongoose.Schema({
-//   field: {type: String, required: true},
-//   path: {type: String, required: true},
-//   originalName: {type: String},
-//   mimeType: {type: String},
-//   size: {type: Number},
-// }, { _id: false });
-
-// const saleDeedSchema = new mongoose.Schema({
-//   // Basic form data
-//   documentType: { type: String, required: true },
-//   propertyType: { type: String, required: true },
-//   plotType: { type: String, required: false },
-//   salePrice: { type: Number, required: true },
-//   circleRateAmount: { type: Number, required: true },
-
-//   // Property area information
-//   areaInputType: { type: String, default: 'total' },
-//   area: { type: Number, required: false },
-//   areaUnit: { type: String, default: 'sq_meters' },
-//   propertyLength: { type: Number, required: false },
-//   propertyWidth: { type: Number, required: false },
-//   dimUnit: { type: String, default: 'meters' },
-
-//   // Buildup details
-//   buildupType: { type: String, required: false },
-//   numShops: { type: Number, default: 1 },
-//   numFloorsMall: { type: Number, default: 1 },
-//   numFloorsMulti: { type: Number, default: 1 },
-//   superAreaMulti: { type: Number, required: false },
-//   coveredAreaMulti: { type: Number, required: false },
-
-//   // Agriculture details
-//   nalkoopCount: { type: Number, default: 0 },
-//   borewellCount: { type: Number, default: 0 },
-
-//   // Property description
-//   state: { type: String, required: true },
-//   district: { type: String, required: true },
-//   tehsil: { type: String, required: true },
-//   village: { type: String, required: true },
-//   khasraNo: { type: String, required: false },
-//   plotNo: { type: String, required: false },
-//   colonyName: { type: String, required: false },
-//   wardNo: { type: String, required: false },
-//   streetNo: { type: String, required: false },
-//   roadSize: { type: Number, required: false },
-//   roadUnit: { type: String, default: 'meter' },
-//   doubleSideRoad: { type: Boolean, default: false },
-
-//   // Property directions
-//   directionNorth: { type: String, required: false },
-//   directionEast: { type: String, required: false },
-//   directionSouth: { type: String, required: false },
-//   directionWest: { type: String, required: false },
-
-//   // Common facilities
-//   coveredParkingCount: { type: Number, default: 0 },
-//   openParkingCount: { type: Number, default: 0 },
-
-//   // Deductions
-//   deductionType: { type: String, required: false },
-//   otherDeductionPercent: { type: Number, required: false },
-
-//   // Dynamic arrays stored as JSON
-//   sellers: { type: mongoose.Schema.Types.Mixed, required: false, default: [] },
-//   buyers: { type: mongoose.Schema.Types.Mixed, required: false, default: [] },
-//   witnesses: { type: mongoose.Schema.Types.Mixed, required: false, default: [] },
-//   rooms: { type: mongoose.Schema.Types.Mixed, required: false, default: [] },
-//   trees: { type: mongoose.Schema.Types.Mixed, required: false, default: [] },
-//   shops: { type: mongoose.Schema.Types.Mixed, required: false, default: [] },
-//   mallFloors: { type: mongoose.Schema.Types.Mixed, required: false, default: [] },
-//   facilities: { type: mongoose.Schema.Types.Mixed, required: false, default: [] },
-//   dynamicFacilities: { type: mongoose.Schema.Types.Mixed, required: false, default: [] },
-
-//   // Calculation results
-//   calculations: { type: mongoose.Schema.Types.Mixed, required: false, default: {} },
-
-//   // File uploads
-//   files: { type: [fileSchema], default: [] },
-
-//   // Metadata
-//   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'user', default: null },
-//   created_at: { type: Date, default: Date.now },
-//   updated_at: { type: Date, default: Date.now },
-// }, { collection: 'sale_deeds' });
-
-// // Update the updated_at field before saving
-// saleDeedSchema.pre('save', function(next) {
-//   this.updated_at = Date.now();
-//   next();
-// });
-
-// const SaleDeedModel = mongoose.model("SaleDeed", saleDeedSchema);
-
-// export default SaleDeedModel;
-
-
 import mongoose from 'mongoose';
 
 const sellerSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  relation: String,
-  address: String,
-  mobile: String,
-  idType: String,
-  idNo: String
-});
+  name: { type: String, required: true, trim: true },
+  relation: { type: String, trim: true },
+  address: { type: String, trim: true },
+  mobile: { type: String, trim: true },
+  idType: { type: String, trim: true },
+  idNo: { type: String, trim: true }
+}, { _id: false });
 
 const buyerSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  relation: String,
-  address: String,
-  mobile: String,
-  idType: String,
-  idNo: String
-});
+  name: { type: String, required: true, trim: true },
+  relation: { type: String, trim: true },
+  address: { type: String, trim: true },
+  mobile: { type: String, trim: true },
+  idType: { type: String, trim: true },
+  idNo: { type: String, trim: true }
+}, { _id: false });
 
 const witnessSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  relation: String,
-  address: String,
-  mobile: String
-});
+  name: { type: String, required: true, trim: true },
+  relation: { type: String, trim: true },
+  address: { type: String, trim: true },
+  mobile: { type: String, trim: true }
+}, { _id: false });
 
 const roomSchema = new mongoose.Schema({
-  type: String,
-  length: Number,
-  width: Number
-});
+  type: { type: String, trim: true },
+  length: { type: Number, min: 0 },
+  width: { type: Number, min: 0 }
+}, { _id: false });
 
 const treeSchema = new mongoose.Schema({
-  type: String,
-  count: Number
-});
+  type: { type: String, trim: true },
+  count: { type: Number, min: 0 }
+}, { _id: false });
 
 const saleDeedSchema = new mongoose.Schema({
-  documentType: { type: String, required: true },
-  propertyType: { type: String, required: true },
-  plotType: { type: String, required: true },
-  salePrice: { type: Number, required: true },
-  circleRateAmount: { type: Number, required: true },
-  areaInputType: String,
-  area: Number,
-  areaUnit: String,
-  propertyLength: Number,
-  propertyWidth: Number,
-  dimUnit: String,
-  buildupType: String,
-  numShops: Number,
-  numFloorsMall: Number,
-  numFloorsMulti: Number,
-  superAreaMulti: Number,
-  coveredAreaMulti: Number,
-  nalkoopCount: Number,
-  borewellCount: Number,
-  state: { type: String, required: true },
-  district: { type: String, required: true },
-  tehsil: { type: String, required: true },
-  village: { type: String, required: true },
-  khasraNo: String,
-  plotNo: String,
-  colonyName: String,
-  wardNo: String,
-  streetNo: String,
-  roadSize: Number,
-  roadUnit: String,
-  doubleSideRoad: Boolean,
-  directionNorth: String,
-  directionEast: String,
-  directionSouth: String,
-  directionWest: String,
-  coveredParkingCount: Number,
-  openParkingCount: Number,
-  deductionType: String,
-  otherDeductionPercent: Number,
-  buyerGender: String,
-  otherDeduction: String,
-  sellers: [sellerSchema],
-  buyers: [buyerSchema],
-  witnesses: [witnessSchema],
-  rooms: [roomSchema],
-  trees: [treeSchema],
-  shops: [Number],
-  mallFloors: [Number],
-  facilities: [String],
-  dynamicFacilities: [String],
+  // Basic Information
+  documentType: { type: String, required: true, trim: true },
+  propertyType: { type: String, required: true, trim: true },
+  plotType: { type: String, trim: true },
+  salePrice: { type: Number, required: true, min: 0 },
+  circleRateAmount: { type: Number, required: true, min: 0 },
+  
+  // Property Area Information
+  areaInputType: { type: String, default: 'total' },
+  area: { type: Number, min: 0 },
+  areaUnit: { type: String, default: 'sq_meters' },
+  propertyLength: { type: Number, min: 0 },
+  propertyWidth: { type: Number, min: 0 },
+  dimUnit: { type: String, default: 'meters' },
+
+  // Buildup Details
+  buildupType: { type: String, trim: true },
+  numShops: { type: Number, default: 1, min: 0 },
+  numFloorsMall: { type: Number, default: 1, min: 0 },
+  numFloorsMulti: { type: Number, default: 1, min: 0 },
+  superAreaMulti: { type: Number, min: 0 },
+  coveredAreaMulti: { type: Number, min: 0 },
+
+  // Agriculture Details
+  nalkoopCount: { type: Number, default: 0, min: 0 },
+  borewellCount: { type: Number, default: 0, min: 0 },
+
+  // Property Location
+  state: { type: String, required: true, trim: true },
+  district: { type: String, required: true, trim: true },
+  tehsil: { type: String, required: true, trim: true },
+  village: { type: String, required: true, trim: true },
+  khasraNo: { type: String, trim: true },
+  plotNo: { type: String, trim: true },
+  colonyName: { type: String, trim: true },
+  wardNo: { type: String, trim: true },
+  streetNo: { type: String, trim: true },
+  roadSize: { type: Number, min: 0 },
+  roadUnit: { type: String, default: 'meter' },
+  doubleSideRoad: { type: Boolean, default: false },
+
+  // Property Directions
+  directionNorth: { type: String, trim: true },
+  directionEast: { type: String, trim: true },
+  directionSouth: { type: String, trim: true },
+  directionWest: { type: String, trim: true },
+
+  // Common Facilities
+  coveredParkingCount: { type: Number, default: 0, min: 0 },
+  openParkingCount: { type: Number, default: 0, min: 0 },
+
+  // Deductions
+  deductionType: { type: String, trim: true },
+  otherDeductionPercent: { type: Number, min: 0, max: 100 },
+
+  // Parties and Details
+  sellers: { type: [sellerSchema], required: true, validate: [v => v.length >= 1, "At least one seller is required"] },
+  buyers: { type: [buyerSchema], required: true, validate: [v => v.length >= 1, "At least one buyer is required"] },
+  witnesses: { type: [witnessSchema], default: [] },
+  rooms: { type: [roomSchema], default: [] },
+  trees: { type: [treeSchema], default: [] },
+  shops: [{ type: Number, min: 0 }],
+  mallFloors: [{ type: Number, min: 0 }],
+  facilities: [{ type: String, trim: true }],
+  dynamicFacilities: [{ type: String, trim: true }],
+
+  // Calculation Results
   calculations: {
-    salePrice: Number,
-    totalPlotAreaSqMeters: Number,
-    totalBuildupAreaSqMeters: Number,
-    baseCircleRateValue: Number,
-    finalCircleRateValue: Number,
-    stampDuty: Number,
-    registrationCharge: Number,
-    finalPayableAmount: Number,
-    deductionAmount: Number,
-    propertyType: String,
-    plotType: String
+    salePrice: { type: Number, min: 0 },
+    totalPlotAreaSqMeters: { type: Number, min: 0 },
+    totalBuildupAreaSqMeters: { type: Number, min: 0 },
+    baseCircleRateValue: { type: Number, min: 0 },
+    finalCircleRateValue: { type: Number, min: 0 },
+    stampDuty: { type: Number, min: 0 },
+    registrationCharge: { type: Number, min: 0 },
+    finalPayableAmount: { type: Number, min: 0 },
+    deductionAmount: { type: Number, min: 0 },
+    propertyType: { type: String, trim: true },
+    plotType: { type: String, trim: true }
   },
+
+  // File Uploads
   files: [{
-    filename: String,
-    contentType: String,
-    size: Number,
-    path: String
+    filename: { type: String, trim: true },
+    contentType: { type: String, trim: true },
+    size: { type: Number, min: 0 },
+    path: { type: String, trim: true }
   }],
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+
+  // Metadata
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+  status: { type: String, enum: ['draft', 'submitted', 'approved', 'rejected'], default: 'draft' }
+}, { 
+  collection: 'sale_deeds',
+  timestamps: true 
 });
+
+// Indexes for better query performance
+saleDeedSchema.index({ createdBy: 1 });
+saleDeedSchema.index({ status: 1 });
+saleDeedSchema.index({ createdAt: -1 });
+saleDeedSchema.index({ state: 1, district: 1, tehsil: 1 });
+saleDeedSchema.index({ documentType: 1 });
+saleDeedSchema.index({ propertyType: 1 });
+
+// Virtual for total area calculation
+saleDeedSchema.virtual('totalArea').get(function() {
+  if (this.propertyLength && this.propertyWidth) {
+    return this.propertyLength * this.propertyWidth;
+  }
+  return this.area || 0;
+});
+
+// Ensure virtual fields are serialized
+saleDeedSchema.set('toJSON', { virtuals: true });
+saleDeedSchema.set('toObject', { virtuals: true });
 
 const SaleDeed = mongoose.model('SaleDeed', saleDeedSchema);
 

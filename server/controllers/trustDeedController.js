@@ -30,117 +30,138 @@ class TrustDeedController {
         trustName,
         trustAddress,
         startingAmount_number,
-        startingAmount_words
+        startingAmount_words,
+        trustees = [],
+        functionalDomains = [],
+        purposes = [],
+        otherPurposes = [],
+        terms = [],
+        otherTerms = [],
+        witnesses = []
       } = sanitizedData;
 
-      // Parse trustees from FormData format
-      const trustees = [];
-      let trusteeIndex = 1;
-      while (sanitizedData[`trusteeName_${trusteeIndex}`]) {
-        const trustee = {
-          salutation: sanitizedData[`trusteeSalutation_${trusteeIndex}`] || 'श्री',
-          position: sanitizedData[`trusteePosition_${trusteeIndex}`],
-          name: sanitizedData[`trusteeName_${trusteeIndex}`],
-          relation: sanitizedData[`trusteeRelation_${trusteeIndex}`],
-          address: sanitizedData[`trusteeAddress_${trusteeIndex}`],
-          mobile: sanitizedData[`trusteeMobile_${trusteeIndex}`],
-          idType: sanitizedData[`trusteeIdType_${trusteeIndex}`] || 'आधार कार्ड',
-          idNumber: sanitizedData[`trusteeIdNumber_${trusteeIndex}`],
-          idCard: req.files?.[`trusteeIdCard_${trusteeIndex}`]?.[0]?.filename || null,
-          photo: req.files?.[`trusteePhoto_${trusteeIndex}`]?.[0]?.filename || null
-        };
-        trustees.push(trustee);
-        trusteeIndex++;
-      }
-
-      // Parse functional domains
-      const functionalDomains = [];
-      let domainIndex = 1;
-      while (sanitizedData[`functionalDomain_${domainIndex}`]) {
-        if (sanitizedData[`functionalDomain_${domainIndex}`].trim()) {
-          functionalDomains.push(sanitizedData[`functionalDomain_${domainIndex}`]);
+      // Parse trustees from FormData format if needed
+      let parsedTrustees = trustees;
+      if (trustees.length === 0) {
+        parsedTrustees = [];
+        let trusteeIndex = 1;
+        while (sanitizedData[`trusteeName_${trusteeIndex}`]) {
+          const trustee = {
+            salutation: sanitizedData[`trusteeSalutation_${trusteeIndex}`] || 'श्री',
+            position: sanitizedData[`trusteePosition_${trusteeIndex}`] || 'सदस्य',
+            name: sanitizedData[`trusteeName_${trusteeIndex}`],
+            relation: sanitizedData[`trusteeRelation_${trusteeIndex}`],
+            address: sanitizedData[`trusteeAddress_${trusteeIndex}`],
+            mobile: sanitizedData[`trusteeMobile_${trusteeIndex}`],
+            idType: sanitizedData[`trusteeIdType_${trusteeIndex}`] || 'आधार कार्ड',
+            idNumber: sanitizedData[`trusteeIdNumber_${trusteeIndex}`],
+            idCard: req.files?.[`trusteeIdCard_${trusteeIndex}`]?.[0]?.filename || null,
+            photo: req.files?.[`trusteePhoto_${trusteeIndex}`]?.[0]?.filename || null
+          };
+          parsedTrustees.push(trustee);
+          trusteeIndex++;
         }
-        domainIndex++;
       }
 
-      // Parse purposes (both predefined and custom)
-      const purposes = Array.isArray(sanitizedData.purpose) ? sanitizedData.purpose : 
-                      (sanitizedData.purpose ? [sanitizedData.purpose] : []);
+      // Parse functional domains if needed
+      let parsedDomains = functionalDomains;
+      if (functionalDomains.length === 0) {
+        parsedDomains = [];
+        let domainIndex = 1;
+        while (sanitizedData[`functionalDomain_${domainIndex}`]) {
+          if (sanitizedData[`functionalDomain_${domainIndex}`].trim()) {
+            parsedDomains.push(sanitizedData[`functionalDomain_${domainIndex}`]);
+          }
+          domainIndex++;
+        }
+      }
+
+      // Parse purposes
+      let parsedPurposes = Array.isArray(purposes) ? purposes : 
+                          (purposes ? [purposes] : []);
       
-      const otherPurposes = [];
-      let purposeIndex = 1;
-      while (sanitizedData[`otherPurpose_${purposeIndex}`]) {
-        if (sanitizedData[`otherPurpose_${purposeIndex}`].trim()) {
-          otherPurposes.push(sanitizedData[`otherPurpose_${purposeIndex}`]);
+      let parsedOtherPurposes = otherPurposes;
+      if (otherPurposes.length === 0) {
+        parsedOtherPurposes = [];
+        let purposeIndex = 1;
+        while (sanitizedData[`otherPurpose_${purposeIndex}`]) {
+          if (sanitizedData[`otherPurpose_${purposeIndex}`].trim()) {
+            parsedOtherPurposes.push(sanitizedData[`otherPurpose_${purposeIndex}`]);
+          }
+          purposeIndex++;
         }
-        purposeIndex++;
       }
 
-      // Parse terms (both predefined and custom)
-      const terms = Array.isArray(sanitizedData.terms) ? sanitizedData.terms : 
-                   (sanitizedData.terms ? [sanitizedData.terms] : []);
+      // Parse terms
+      let parsedTerms = Array.isArray(terms) ? terms : 
+                       (terms ? [terms] : []);
       
-      const otherTerms = [];
-      let termIndex = 1;
-      while (sanitizedData[`otherTerm_${termIndex}`]) {
-        if (sanitizedData[`otherTerm_${termIndex}`].trim()) {
-          otherTerms.push(sanitizedData[`otherTerm_${termIndex}`]);
+      let parsedOtherTerms = otherTerms;
+      if (otherTerms.length === 0) {
+        parsedOtherTerms = [];
+        let termIndex = 1;
+        while (sanitizedData[`otherTerm_${termIndex}`]) {
+          if (sanitizedData[`otherTerm_${termIndex}`].trim()) {
+            parsedOtherTerms.push(sanitizedData[`otherTerm_${termIndex}`]);
+          }
+          termIndex++;
         }
-        termIndex++;
       }
 
-      // Parse witnesses
-      const witnesses = [];
-      let witnessIndex = 1;
-      while (sanitizedData[`witnessName_${witnessIndex}`]) {
-        const witness = {
-          name: sanitizedData[`witnessName_${witnessIndex}`],
-          relation: sanitizedData[`witnessRelation_${witnessIndex}`],
-          address: sanitizedData[`witnessAddress_${witnessIndex}`],
-          mobile: sanitizedData[`witnessMobile_${witnessIndex}`],
-          idType: sanitizedData[`witnessIdType_${witnessIndex}`] || 'आधार कार्ड',
-          idNumber: sanitizedData[`witnessIdNumber_${witnessIndex}`],
-          idCard: req.files?.[`witnessIdCard_${witnessIndex}`]?.[0]?.filename || null,
-          photo: req.files?.[`witnessPhoto_${witnessIndex}`]?.[0]?.filename || null
-        };
-        witnesses.push(witness);
-        witnessIndex++;
+      // Parse witnesses if needed
+      let parsedWitnesses = witnesses;
+      if (witnesses.length === 0) {
+        parsedWitnesses = [];
+        let witnessIndex = 1;
+        while (sanitizedData[`witnessName_${witnessIndex}`]) {
+          const witness = {
+            name: sanitizedData[`witnessName_${witnessIndex}`],
+            relation: sanitizedData[`witnessRelation_${witnessIndex}`],
+            address: sanitizedData[`witnessAddress_${witnessIndex}`],
+            mobile: sanitizedData[`witnessMobile_${witnessIndex}`],
+            idType: sanitizedData[`witnessIdType_${witnessIndex}`] || 'आधार कार्ड',
+            idNumber: sanitizedData[`witnessIdNumber_${witnessIndex}`],
+            idCard: req.files?.[`witnessIdCard_${witnessIndex}`]?.[0]?.filename || null,
+            photo: req.files?.[`witnessPhoto_${witnessIndex}`]?.[0]?.filename || null
+          };
+          parsedWitnesses.push(witness);
+          witnessIndex++;
+        }
       }
 
       // Validation
       if (!trustName || !trustAddress || !startingAmount_number || !startingAmount_words) {
         logger.warn('Trust deed creation failed: Missing required fields', { 
           userId: req.user?.id,
-          ip: req.ip,
-          userAgent: req.get('User-Agent')
+          ip: req.ip
         });
         return res.status(400).json({
-          status: "failed",
+          success: false,
           message: "Missing required fields: trustName, trustAddress, startingAmount_number, startingAmount_words"
         });
       }
 
       // Validate trustees
-      if (!trustees || trustees.length === 0) {
+      if (!parsedTrustees || parsedTrustees.length === 0) {
         logger.warn('Trust deed creation failed: No trustees provided', { 
           userId: req.user?.id,
           ip: req.ip
         });
         return res.status(400).json({
-          status: "failed",
+          success: false,
           message: "At least one trustee is required"
         });
       }
 
       // Validate each trustee
-      for (const trustee of trustees) {
+      for (const trustee of parsedTrustees) {
         if (!trustee.name || !trustee.address || !trustee.mobile) {
           logger.warn('Trust deed creation failed: Invalid trustee data', { 
             userId: req.user?.id,
             trustee: trustee
           });
           return res.status(400).json({
-            status: "failed",
+            success: false,
             message: "Each trustee must have name, address, and mobile number"
           });
         }
@@ -154,14 +175,14 @@ class TrustDeedController {
           number: startingAmount_number,
           words: startingAmount_words
         },
-        trustees,
-        functionalDomains,
-        purposes,
-        otherPurposes,
-        terms,
-        otherTerms,
-        witnesses,
-        createdBy: req.user?.id,
+        trustees: parsedTrustees,
+        functionalDomains: parsedDomains,
+        purposes: parsedPurposes,
+        otherPurposes: parsedOtherPurposes,
+        terms: parsedTerms,
+        otherTerms: parsedOtherTerms,
+        witnesses: parsedWitnesses,
+        createdBy: req.user?.id || null,
         meta: {
           status: 'draft',
           createdAt: new Date(),
@@ -179,7 +200,7 @@ class TrustDeedController {
       });
 
       res.status(201).json({
-        status: "success",
+        success: true,
         message: "Trust deed created successfully",
         data: {
           id: trustDeed._id,
@@ -198,7 +219,7 @@ class TrustDeedController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error",
         error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
       });
@@ -208,18 +229,25 @@ class TrustDeedController {
   static getAll = async (req, res) => {
     try {
       const { page = 1, limit = 10, status } = req.query;
-      const filter = status ? { status } : {};
+      const filter = {};
+      
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+      if (status) {
+        filter['meta.status'] = status;
+      }
       
       const trustDeeds = await TrustDeed.find(filter)
         .populate('createdBy', 'name email')
-        .sort({ createdAt: -1 })
+        .sort({ 'meta.createdAt': -1 })
         .limit(limit * 1)
         .skip((page - 1) * limit);
 
       const total = await TrustDeed.countDocuments(filter);
 
       res.status(200).json({
-        status: "success",
+        success: true,
         data: {
           trustDeeds,
           totalPages: Math.ceil(total / limit),
@@ -235,7 +263,7 @@ class TrustDeedController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -245,18 +273,23 @@ class TrustDeedController {
     try {
       const { id } = req.params;
       
-      const trustDeed = await TrustDeed.findById(id)
+      const filter = { _id: id };
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+      
+      const trustDeed = await TrustDeed.findOne(filter)
         .populate('createdBy', 'name email');
 
       if (!trustDeed) {
         return res.status(404).json({
-          status: "failed",
+          success: false,
           message: "Trust deed not found"
         });
       }
 
       res.status(200).json({
-        status: "success",
+        success: true,
         data: { trustDeed }
       });
 
@@ -268,7 +301,7 @@ class TrustDeedController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -282,20 +315,25 @@ class TrustDeedController {
       const validStatuses = ['draft', 'submitted', 'approved', 'rejected'];
       if (!validStatuses.includes(status)) {
         return res.status(400).json({
-          status: "failed",
+          success: false,
           message: "Invalid status. Must be one of: draft, submitted, approved, rejected"
         });
       }
 
-      const trustDeed = await TrustDeed.findByIdAndUpdate(
-        id,
-        { status },
+      const filter = { _id: id };
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+
+      const trustDeed = await TrustDeed.findOneAndUpdate(
+        filter,
+        { 'meta.status': status },
         { new: true }
       );
 
       if (!trustDeed) {
         return res.status(404).json({
-          status: "failed",
+          success: false,
           message: "Trust deed not found"
         });
       }
@@ -307,7 +345,7 @@ class TrustDeedController {
       });
 
       res.status(200).json({
-        status: "success",
+        success: true,
         message: "Trust deed status updated successfully",
         data: { trustDeed }
       });
@@ -320,7 +358,7 @@ class TrustDeedController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -330,11 +368,16 @@ class TrustDeedController {
     try {
       const { id } = req.params;
       
-      const trustDeed = await TrustDeed.findByIdAndDelete(id);
+      const filter = { _id: id };
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+      
+      const trustDeed = await TrustDeed.findOneAndDelete(filter);
 
       if (!trustDeed) {
         return res.status(404).json({
-          status: "failed",
+          success: false,
           message: "Trust deed not found"
         });
       }
@@ -345,7 +388,7 @@ class TrustDeedController {
       });
 
       res.status(200).json({
-        status: "success",
+        success: true,
         message: "Trust deed deleted successfully"
       });
 
@@ -357,7 +400,7 @@ class TrustDeedController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
       });
     }
@@ -365,10 +408,16 @@ class TrustDeedController {
 
   static getStats = async (req, res) => {
     try {
+      const matchFilter = {};
+      if (req.user?.id) {
+        matchFilter.createdBy = req.user.id;
+      }
+      
       const stats = await TrustDeed.aggregate([
+        { $match: matchFilter },
         {
           $group: {
-            _id: '$status',
+            _id: '$meta.status',
             count: { $sum: 1 }
           }
         }
@@ -388,7 +437,7 @@ class TrustDeedController {
       });
 
       res.status(200).json({
-        status: "success",
+        success: true,
         data: { stats: formattedStats }
       });
 
@@ -399,8 +448,78 @@ class TrustDeedController {
       });
       
       res.status(500).json({
-        status: "failed",
+        success: false,
         message: "Internal server error"
+      });
+    }
+  };
+
+  // Payment initialization endpoint
+  static initializePayment = async (req, res) => {
+    try {
+      const {
+        formType,
+        formData,
+        amount,
+        userInfo
+      } = req.body;
+
+      // Validate required fields
+      if (!formType || !formData || !amount) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required payment information'
+        });
+      }
+
+      // Generate transaction ID
+      const txnid = `TXN${Date.now()}${Math.random().toString(36).substr(2, 5)}`;
+
+      // PayU configuration
+      const payuConfig = {
+        key: 'gtKFFx',
+        salt: 'eCwWELxi',
+        txnid: txnid,
+        amount: amount,
+        productinfo: `${formType} Form Submission`,
+        firstname: userInfo?.name || formData?.name || formData?.trustName || 'User',
+        email: userInfo?.email || 'bonehookadvt01@gmail.com',
+        phone: userInfo?.phone || formData?.phone || formData?.mobile || '9999999999',
+        surl: `${process.env.FRONTEND_HOST || 'http://localhost:3000'}/payment/success`,
+        furl: `${process.env.FRONTEND_HOST || 'http://localhost:3000'}/payment/failure`
+      };
+
+      // Generate hash
+      const crypto = require('crypto');
+      const hashString = `${payuConfig.key}|${payuConfig.txnid}|${payuConfig.amount}|${payuConfig.productinfo}|${payuConfig.firstname}|${payuConfig.email}|||||||||||${payuConfig.salt}`;
+      const hash = crypto.createHash('sha512').update(hashString).digest('hex');
+
+      // Return payment data with hash
+      res.status(200).json({
+        success: true,
+        message: 'Payment initialized successfully',
+        data: {
+          ...payuConfig,
+          hash: hash,
+          paymentUrl: 'https://test.payu.in/_payment',
+          formData: formData,
+          formType: formType
+        }
+      });
+
+      logger.info('Payment initialized successfully', { 
+        txnid, 
+        amount, 
+        formType,
+        userId: req.user?.id 
+      });
+
+    } catch (error) {
+      logger.error('Error initializing payment:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to initialize payment',
+        error: error.message
       });
     }
   };

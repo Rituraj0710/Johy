@@ -25,46 +25,133 @@ class PropertyRegistrationController {
       const sanitizedData = sanitizeInput(req.body);
       
       const {
-        seller_name, seller_father_name, seller_address, seller_aadhaar, seller_mobile,
-        buyer_name, buyer_father_name, buyer_address, buyer_aadhaar, buyer_mobile,
-        property_address, property_type, area_sqm, sale_price, registration_date
+        seller_name, 
+        seller_father_name, 
+        seller_address, 
+        seller_aadhaar, 
+        seller_mobile,
+        buyer_name, 
+        buyer_father_name, 
+        buyer_address, 
+        buyer_aadhaar, 
+        buyer_mobile,
+        property_address, 
+        property_type, 
+        area_sqm, 
+        sale_price, 
+        registration_date
       } = sanitizedData;
 
+      // Validation
       if (!seller_name || !buyer_name || !property_address || !property_type) {
+        logger.warn('Property registration creation failed: Missing required fields', { 
+          userId: req.user?.id,
+          ip: req.ip
+        });
         return res.status(400).json({
-          status: "failed",
-          message: "Missing required fields"
+          success: false,
+          message: "Missing required fields: seller_name, buyer_name, property_address, property_type"
+        });
+      }
+
+      // Validate Aadhaar numbers
+      const aadhaarRegex = /^[0-9]{12}$/;
+      if (seller_aadhaar && !aadhaarRegex.test(seller_aadhaar)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid seller Aadhaar number. Must be 12 digits."
+        });
+      }
+
+      if (buyer_aadhaar && !aadhaarRegex.test(buyer_aadhaar)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid buyer Aadhaar number. Must be 12 digits."
+        });
+      }
+
+      // Validate mobile numbers
+      const mobileRegex = /^[0-9]{10}$/;
+      if (seller_mobile && !mobileRegex.test(seller_mobile)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid seller mobile number. Must be 10 digits."
+        });
+      }
+
+      if (buyer_mobile && !mobileRegex.test(buyer_mobile)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid buyer mobile number. Must be 10 digits."
         });
       }
 
       const propertyRegistrationData = {
-        seller: { name: seller_name, father_name: seller_father_name, address: seller_address, aadhaar: seller_aadhaar, mobile: seller_mobile },
-        buyer: { name: buyer_name, father_name: buyer_father_name, address: buyer_address, aadhaar: buyer_aadhaar, mobile: buyer_mobile },
-        property: { address: property_address, type: property_type, area_sqm: parseFloat(area_sqm), sale_price: parseFloat(sale_price), registration_date: new Date(registration_date) },
-        createdBy: req.user?.id,
-        status: 'draft',
-        amount: 1200
+        seller_name,
+        seller_father_name,
+        seller_address,
+        seller_aadhaar,
+        seller_mobile,
+        buyer_name,
+        buyer_father_name,
+        buyer_address,
+        buyer_aadhaar,
+        buyer_mobile,
+        property_address,
+        property_type,
+        area_sqm,
+        sale_price,
+        registration_date: registration_date ? new Date(registration_date) : new Date(),
+        createdBy: req.user?.id || null
       };
 
       const propertyRegistration = new PropertyRegistration(propertyRegistrationData);
       await propertyRegistration.save();
 
+      logger.info('Property registration created successfully', { 
+        propertyRegistrationId: propertyRegistration._id,
+        userId: req.user?.id,
+        seller_name,
+        buyer_name
+      });
+
       res.status(201).json({
-        status: "success",
+        success: true,
         message: "Property registration created successfully",
-        data: { id: propertyRegistration._id, status: propertyRegistration.status, amount: propertyRegistration.amount }
+        data: {
+          id: propertyRegistration._id,
+          seller_name: propertyRegistration.seller_name,
+          buyer_name: propertyRegistration.buyer_name,
+          property_type: propertyRegistration.property_type,
+          createdAt: propertyRegistration.createdAt
+        }
       });
 
     } catch (error) {
-      logger.error('Property registration creation error', { error: error.message, userId: req.user?.id });
-      res.status(500).json({ status: "failed", message: "Internal server error" });
+      logger.error('Property registration creation error', { 
+        error: error.message, 
+        userId: req.user?.id 
+      });
+      
+      res.status(500).json({ 
+        success: false, 
+        message: "Internal server error",
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Something went wrong'
+      });
     }
   };
 
   static getAll = async (req, res) => {
     try {
       const { page = 1, limit = 10, status } = req.query;
-      const filter = status ? { status } : {};
+      const filter = {};
+      
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+      if (status) {
+        filter.status = status;
+      }
       
       const propertyRegistrations = await PropertyRegistration.find(filter)
         .populate('createdBy', 'name email')
@@ -75,30 +162,58 @@ class PropertyRegistrationController {
       const total = await PropertyRegistration.countDocuments(filter);
 
       res.status(200).json({
-        status: "success",
-        data: { propertyRegistrations, totalPages: Math.ceil(total / limit), currentPage: page, total }
+        success: true,
+        data: { 
+          propertyRegistrations, 
+          totalPages: Math.ceil(total / limit), 
+          currentPage: page, 
+          total 
+        }
       });
 
     } catch (error) {
-      logger.error('Get all property registrations error', { error: error.message });
-      res.status(500).json({ status: "failed", message: "Internal server error" });
+      logger.error('Get all property registrations error', { 
+        error: error.message 
+      });
+      res.status(500).json({ 
+        success: false, 
+        message: "Internal server error" 
+      });
     }
   };
 
   static getById = async (req, res) => {
     try {
       const { id } = req.params;
-      const propertyRegistration = await PropertyRegistration.findById(id).populate('createdBy', 'name email');
+      
+      const filter = { _id: id };
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+      
+      const propertyRegistration = await PropertyRegistration.findOne(filter)
+        .populate('createdBy', 'name email');
 
       if (!propertyRegistration) {
-        return res.status(404).json({ status: "failed", message: "Property registration not found" });
+        return res.status(404).json({ 
+          success: false, 
+          message: "Property registration not found" 
+        });
       }
 
-      res.status(200).json({ status: "success", data: { propertyRegistration } });
+      res.status(200).json({ 
+        success: true, 
+        data: propertyRegistration 
+      });
 
     } catch (error) {
-      logger.error('Get property registration by ID error', { error: error.message });
-      res.status(500).json({ status: "failed", message: "Internal server error" });
+      logger.error('Get property registration by ID error', { 
+        error: error.message 
+      });
+      res.status(500).json({ 
+        success: false, 
+        message: "Internal server error" 
+      });
     }
   };
 
@@ -107,54 +222,136 @@ class PropertyRegistrationController {
       const { id } = req.params;
       const { status } = req.body;
 
-      const validStatuses = ['draft', 'submitted', 'approved', 'rejected'];
+      const validStatuses = ['pending', 'approved', 'rejected'];
       if (!validStatuses.includes(status)) {
-        return res.status(400).json({ status: "failed", message: "Invalid status" });
+        return res.status(400).json({ 
+          success: false, 
+          message: "Invalid status. Must be one of: pending, approved, rejected" 
+        });
       }
 
-      const propertyRegistration = await PropertyRegistration.findByIdAndUpdate(id, { status }, { new: true });
+      const filter = { _id: id };
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+
+      const propertyRegistration = await PropertyRegistration.findOneAndUpdate(
+        filter,
+        { status },
+        { new: true }
+      );
 
       if (!propertyRegistration) {
-        return res.status(404).json({ status: "failed", message: "Property registration not found" });
+        return res.status(404).json({ 
+          success: false, 
+          message: "Property registration not found" 
+        });
       }
 
-      res.status(200).json({ status: "success", message: "Status updated successfully", data: { propertyRegistration } });
+      logger.info('Property registration status updated', { 
+        propertyRegistrationId: id,
+        newStatus: status,
+        userId: req.user?.id
+      });
+
+      res.status(200).json({ 
+        success: true, 
+        message: "Status updated successfully", 
+        data: { propertyRegistration } 
+      });
 
     } catch (error) {
-      logger.error('Update property registration status error', { error: error.message });
-      res.status(500).json({ status: "failed", message: "Internal server error" });
+      logger.error('Update property registration status error', { 
+        error: error.message 
+      });
+      res.status(500).json({ 
+        success: false, 
+        message: "Internal server error" 
+      });
     }
   };
 
   static delete = async (req, res) => {
     try {
       const { id } = req.params;
-      const propertyRegistration = await PropertyRegistration.findByIdAndDelete(id);
+      
+      const filter = { _id: id };
+      if (req.user?.id) {
+        filter.createdBy = req.user.id;
+      }
+      
+      const propertyRegistration = await PropertyRegistration.findOneAndDelete(filter);
 
       if (!propertyRegistration) {
-        return res.status(404).json({ status: "failed", message: "Property registration not found" });
+        return res.status(404).json({ 
+          success: false, 
+          message: "Property registration not found" 
+        });
       }
 
-      res.status(200).json({ status: "success", message: "Property registration deleted successfully" });
+      logger.info('Property registration deleted', { 
+        propertyRegistrationId: id,
+        userId: req.user?.id
+      });
+
+      res.status(200).json({ 
+        success: true, 
+        message: "Property registration deleted successfully" 
+      });
 
     } catch (error) {
-      logger.error('Delete property registration error', { error: error.message });
-      res.status(500).json({ status: "failed", message: "Internal server error" });
+      logger.error('Delete property registration error', { 
+        error: error.message 
+      });
+      res.status(500).json({ 
+        success: false, 
+        message: "Internal server error" 
+      });
     }
   };
 
   static getStats = async (req, res) => {
     try {
-      const stats = await PropertyRegistration.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]);
+      const matchFilter = {};
+      if (req.user?.id) {
+        matchFilter.createdBy = req.user.id;
+      }
+      
+      const stats = await PropertyRegistration.aggregate([
+        { $match: matchFilter },
+        {
+          $group: {
+            _id: '$status',
+            count: { $sum: 1 }
+          }
+        }
+      ]);
 
-      const formattedStats = { total: 0, draft: 0, submitted: 0, approved: 0, rejected: 0 };
-      stats.forEach(stat => { formattedStats[stat._id] = stat.count; formattedStats.total += stat.count; });
+      const formattedStats = { 
+        total: 0, 
+        pending: 0, 
+        approved: 0, 
+        rejected: 0 
+      };
+      
+      stats.forEach(stat => { 
+        formattedStats[stat._id] = stat.count; 
+        formattedStats.total += stat.count; 
+      });
 
-      res.status(200).json({ status: "success", data: { stats: formattedStats } });
+      res.status(200).json({ 
+        success: true, 
+        data: { stats: formattedStats } 
+      });
 
     } catch (error) {
-      logger.error('Get property registration stats error', { error: error.message });
-      res.status(500).json({ status: "failed", message: "Internal server error" });
+      logger.error('Get property registration stats error', { 
+        error: error.message 
+      });
+      res.status(500).json({ 
+        success: false, 
+        message: "Internal server error" 
+      });
     }
   };
 }
