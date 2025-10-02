@@ -5,11 +5,11 @@ const nextConfig = {
     esmExternals: true,
   },
   env: {
-    NEXT_PUBLIC_API_BASE: process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4000',
+    NEXT_PUBLIC_API_BASE: process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4001',
   },
   // Ensure environment variables are available at build time
   publicRuntimeConfig: {
-    apiBase: process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4000',
+    apiBase: process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4001',
   },
   webpack: (config, { isServer }) => {
     // Fix for webpack chunk loading issues
@@ -21,7 +21,7 @@ const nextConfig = {
         tls: false,
       };
     }
-    return config;
+  return config;
   },
 };
 

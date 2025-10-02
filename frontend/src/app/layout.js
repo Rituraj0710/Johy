@@ -1,6 +1,7 @@
 import "./globals.css";
 import StoreProvider from "./StoreProvider";
 import I18nProvider from "./I18nProvider";
+import { ToastProvider } from "@/contexts/ToastContext";
 
 export const metadata = {
   title: "Project",
@@ -11,11 +12,13 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="bg-gray-100">
-        <I18nProvider>
-          <StoreProvider>
-            {children}
-          </StoreProvider>
-        </I18nProvider>
+        <StoreProvider>
+          <I18nProvider>
+            <ToastProvider>
+              {children}
+            </ToastProvider>
+          </I18nProvider>
+        </StoreProvider>
       </body>
     </html>
   );

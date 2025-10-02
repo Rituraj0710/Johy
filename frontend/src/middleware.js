@@ -1,33 +1,25 @@
 import { NextResponse } from "next/server";
 
-// Array of path to check against
-const authPaths = ['/account/user-login', '/account/user-register','/account/agent-login','/account/agent-register'];
-// const agentPaths = ['/account/agent-login', '/account/agent-register'];
+// Only enforce admin/staff via cookies; user/agent use client-side guards (localStorage)
+const authPaths = ['/admin/login', '/admin'];
+
 export async function middleware(request){
   try {
     const isAuthenticated = request.cookies.get('is_auth')?.value;
     const isRole = request.cookies.get("role")?.value;
     const path = request.nextUrl.pathname;
 
-    if(isAuthenticated && isRole === "user"){
-      if(authPaths.includes(path)){
-        return NextResponse.redirect(new URL('/user/profile', request.url));
-      }
+    // Handle admin route specifically
+    if (path === '/admin' && !isAuthenticated) {
+      return NextResponse.redirect(new URL('/admin/login', request.url));
     }
 
-    if(isAuthenticated && isRole === "agent"){
-      if(authPaths.includes(path)){
-        return NextResponse.redirect(new URL('/agent/agent-profile', request.url));
-      }
+    // If hitting /admin/login and already authenticated as admin or staff, route accordingly
+    if (path === '/admin/login' && isAuthenticated) {
+      if (isRole === 'admin') return NextResponse.redirect(new URL('/admin', request.url));
+      return NextResponse.redirect(new URL('/staff/dashboard', request.url));
     }
 
-    if (!isAuthenticated && !authPaths.includes(path)) {
-      return NextResponse.redirect(new URL('/account/user-login', request.url));
-    }
-    
-    if (!isAuthenticated && !authPaths.includes(path)) {
-      return NextResponse.redirect(new URL('/account/agent-login', request.url));
-    }
     return NextResponse.next()
   } catch (error) {
     console.error('Error occured while checking authentication:',error);
@@ -36,5 +28,5 @@ export async function middleware(request){
 }
 
 export const config = {
-  matcher: ['/user/:path*', '/agent/:path*', '/account/user-login', '/account/user-register', '/account/agent-login','/account/agent-register'],
+  matcher: ['/admin/:path*']
 }

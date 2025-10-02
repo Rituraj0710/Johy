@@ -1,126 +1,155 @@
 import express from "express";
-import { authorizeRoles } from "../middlewares/authorizeRoles.js";
+import passport from "passport";
+import AdminController from "../controllers/adminController.js";
+import accessTokenAutoRefresh from "../middlewares/accessTokenAutoRefresh.js";
+import setAuthHeader from "../middlewares/setAuthHeader.js";
+import { authorize, canManageStaff, logAction, logResponse } from "../middlewares/rbac.js";
+import { authLimiter } from "../config/rateLimits.js";
 
 const router = express.Router();
 
-// Admin Routes - Only accessible by admin
-router.use(authorizeRoles('admin'));
+// All admin routes require authentication and admin role
+router.use(setAuthHeader, accessTokenAutoRefresh, passport.authenticate('userOrStaff', {session: false}));
 
-// Admin Dashboard
-router.get("/dashboard", (req, res) => {
-  res.json({
-    status: 'success',
-    message: 'Admin Dashboard accessed successfully',
-    data: {
-      user: req.user,
-      role: 'admin',
-      permissions: ['manage_users', 'manage_system', 'view_analytics', 'manage_roles']
-    }
-  });
-});
+// Staff Management Routes
+router.post("/staff/create", 
+  authorize(['admin']), 
+  canManageStaff, 
+  logAction('staff_create', 'staff'),
+  authLimiter,
+  AdminController.createStaff,
+  logResponse
+);
 
-// User Management
-router.get("/users", (req, res) => {
-  res.json({
-    status: 'success',
-    message: 'Users retrieved',
-    data: {
-      users: [
-        { id: 1, name: 'John Doe', email: 'john@example.com', roles: ['user'], status: 'active' },
-        { id: 2, name: 'Jane Smith', email: 'jane@example.com', roles: ['staff_hr'], status: 'active' },
-        { id: 3, name: 'Admin User', email: 'admin@example.com', roles: ['admin'], status: 'active' }
-      ]
-    }
-  });
-});
+router.put("/staff/:staffId", 
+  authorize(['admin']), 
+  canManageStaff, 
+  logAction('staff_update', 'staff'),
+  AdminController.updateStaff,
+  logResponse
+);
 
-// Assign Role to User
-router.put("/users/:id/role", (req, res) => {
-  res.json({
-    status: 'success',
-    message: `Role assigned to user ${req.params.id} successfully`,
-    data: req.body
-  });
-});
+router.get("/staff", 
+  authorize(['admin']), 
+  AdminController.getAllStaff
+);
 
-// System Settings
-router.get("/settings", (req, res) => {
-  res.json({
-    status: 'success',
-    message: 'System settings retrieved',
-    data: {
-      settings: {
-        site_name: 'Document Management System',
-        maintenance_mode: false,
-        registration_enabled: true,
-        email_notifications: true
-      }
-    }
-  });
-});
+// DELETE route must come before GET /staff/:staffId to avoid route conflicts
+router.delete("/staff/:staffId", 
+  authorize(['admin']), 
+  canManageStaff, 
+  logAction('staff_delete', 'staff'),
+  AdminController.deleteStaff,
+  logResponse
+);
 
-// Update System Settings
-router.put("/settings", (req, res) => {
-  res.json({
-    status: 'success',
-    message: 'System settings updated successfully',
-    data: req.body
-  });
-});
+router.get("/staff/:staffId", 
+  authorize(['admin']), 
+  AdminController.getStaffById
+);
 
-// System Analytics
-router.get("/analytics", (req, res) => {
-  res.json({
-    status: 'success',
-    message: 'System analytics retrieved',
-    data: {
-      analytics: {
-        total_users: 1250,
-        active_users: 980,
-        total_documents: 5500,
-        system_health: 'excellent',
-        server_uptime: '99.9%'
-      }
-    }
-  });
-});
+router.patch("/staff/:staffId/deactivate", 
+  authorize(['admin']), 
+  canManageStaff, 
+  logAction('staff_deactivate', 'staff'),
+  AdminController.deactivateStaff,
+  logResponse
+);
 
-// Audit Logs
-router.get("/audit-logs", (req, res) => {
-  res.json({
-    status: 'success',
-    message: 'Audit logs retrieved',
-    data: {
-      logs: [
-        { id: 1, user: 'admin@example.com', action: 'user_created', timestamp: '2024-01-15T10:30:00Z' },
-        { id: 2, user: 'staff_hr@example.com', action: 'role_assigned', timestamp: '2024-01-15T09:15:00Z' },
-        { id: 3, user: 'user@example.com', action: 'document_uploaded', timestamp: '2024-01-15T08:45:00Z' }
-      ]
-    }
-  });
-});
+router.put("/staff/:staffId/reset-password", 
+  authorize(['admin']), 
+  canManageStaff, 
+  logAction('staff_reset_password', 'staff'),
+  AdminController.resetStaffPassword,
+  logResponse
+);
 
-// Backup Management
-router.get("/backups", (req, res) => {
-  res.json({
-    status: 'success',
-    message: 'Backup information retrieved',
-    data: {
-      backups: [
-        { id: 1, name: 'backup_2024_01_15', size: '2.5GB', created_at: '2024-01-15T02:00:00Z', status: 'completed' },
-        { id: 2, name: 'backup_2024_01_14', size: '2.3GB', created_at: '2024-01-14T02:00:00Z', status: 'completed' }
-      ]
-    }
-  });
-});
+// Audit and Monitoring Routes
+router.get("/audit-logs", 
+  authorize(['admin']), 
+  AdminController.getAuditLogs
+);
 
-// Create Backup
-router.post("/backups", (req, res) => {
-  res.json({
-    status: 'success',
-    message: 'Backup initiated successfully',
-    data: req.body
-  });
-});
+router.get("/dashboard/stats", 
+  authorize(['admin']), 
+  AdminController.getDashboardStats
+);
+
+router.get("/roles/available", 
+  authorize(['admin']), 
+  AdminController.getAvailableRoles
+);
+
+// Forms Management Routes
+router.get("/forms", 
+  authorize(['admin', 'staff1', 'staff2', 'staff3', 'staff4', 'staff5']), 
+  AdminController.getAdminForms
+);
+
+router.get("/forms/:id", 
+  authorize(['admin', 'staff1', 'staff2', 'staff3', 'staff4', 'staff5']), 
+  AdminController.getFormById
+);
+
+router.put("/forms/:id", 
+  authorize(['admin', 'staff1', 'staff2', 'staff3', 'staff4', 'staff5']), 
+  AdminController.updateForm
+);
+
+router.delete("/forms/:id", 
+  authorize(['admin']), 
+  AdminController.deleteForm
+);
+
+router.get("/forms/stats", 
+  authorize(['admin', 'staff1', 'staff2', 'staff3', 'staff4', 'staff5']), 
+  AdminController.getFormStats
+);
+
+// User Management Routes
+router.get("/users", 
+  authorize(['admin']), 
+  AdminController.getAllUsers
+);
+
+router.get("/users/stats", 
+  authorize(['admin']), 
+  AdminController.getUserStats
+);
+
+router.get("/users/:userId", 
+  authorize(['admin']), 
+  AdminController.getUserById
+);
+
+router.patch("/users/:userId/status", 
+  authorize(['admin']), 
+  logAction('user_status_update', 'user'),
+  AdminController.updateUserStatus,
+  logResponse
+);
+
+// Agent Management Routes
+router.get("/agents", 
+  authorize(['admin']), 
+  AdminController.getAllAgents
+);
+
+router.get("/agents/stats", 
+  authorize(['admin']), 
+  AdminController.getAgentStats
+);
+
+router.get("/agents/:agentId", 
+  authorize(['admin']), 
+  AdminController.getAgentById
+);
+
+router.patch("/agents/:agentId/status", 
+  authorize(['admin']), 
+  logAction('agent_status_update', 'agent'),
+  AdminController.updateAgentStatus,
+  logResponse
+);
 
 export default router;

@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useGetAgentQuery } from "@/lib/services/auth";
+import { useGetStaffQuery } from "@/lib/services/auth";
 
 const AgentAvatar = () => {
   const [user, setUser] = useState({});
-  const { data, isSuccess } = useGetAgentQuery();
+  const { data, isSuccess } = useGetStaffQuery();
 
   useEffect(() => {
     if (data && isSuccess) {

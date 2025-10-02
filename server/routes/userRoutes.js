@@ -13,8 +13,8 @@ import { authLimiter, passwordResetLimiter, emailVerificationLimiter } from "../
 
 // Public Routes with rate limiting
 router.post("/register", authLimiter, UserController.userRegistration);
-router.post("/verify-email", emailVerificationLimiter, UserController.verifyEmail);
-router.post("/resend-otp", emailVerificationLimiter, UserController.resendVerificationOTP);
+router.post("/verify-otp", emailVerificationLimiter, UserController.verifyOTP);
+router.post("/resend-otp", emailVerificationLimiter, UserController.resendOTP);
 router.post("/login", authLimiter, UserController.userLogin);
 router.post("/refresh-token", UserController.getNewAccessToken);
 router.post("/reset-password-link", passwordResetLimiter, UserController.sendUserPasswordResetEmail);
@@ -27,6 +27,11 @@ router.post("/change-password", setAuthHeader, accessTokenAutoRefresh, authorize
 router.post("/logout", setAuthHeader, accessTokenAutoRefresh, authorizeRoles('user', 'admin', 'staff_1', 'staff_2', 'staff_3', 'staff_4', 'staff_5', 'staff_6', 'staff_7'), UserController.userLogout);
 
 router.post("/contact", setAuthHeader, accessTokenAutoRefresh, authorizeRoles('user', 'admin', 'staff_1', 'staff_2', 'staff_3', 'staff_4', 'staff_5', 'staff_6', 'staff_7'), ContactController.submitContactForm);
+
+// User Forms Routes
+router.get("/forms", setAuthHeader, accessTokenAutoRefresh, authorizeRoles('user', 'admin', 'staff_1', 'staff_2', 'staff_3', 'staff_4', 'staff_5', 'staff_6', 'staff_7'), UserController.getUserForms);
+router.get("/forms/:id", setAuthHeader, accessTokenAutoRefresh, authorizeRoles('user', 'admin', 'staff_1', 'staff_2', 'staff_3', 'staff_4', 'staff_5', 'staff_6', 'staff_7'), UserController.getUserFormById);
+router.get("/forms/:id/download", setAuthHeader, accessTokenAutoRefresh, authorizeRoles('user', 'admin', 'staff_1', 'staff_2', 'staff_3', 'staff_4', 'staff_5', 'staff_6', 'staff_7'), UserController.downloadUserForm);
 
 // Payment endpoints (temporary - to be moved to dedicated payment routes)
 router.post("/payment/initialize", (req, res) => {

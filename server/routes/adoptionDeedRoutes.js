@@ -46,9 +46,19 @@ const uploadFields = [
   { name: 'witnessPhoto', maxCount: 10 }
 ];
 
-// Middleware for authentication
+// Middleware for optional authentication
 const authenticate = [
-  passport.authenticate('userOrAgent', { session: false }),
+  (req, res, next) => {
+    passport.authenticate('userOrAgent', { session: false }, (err, user, info) => {
+      if (err) {
+        return next(err);
+      }
+      if (user) {
+        req.user = user;
+      }
+      next();
+    })(req, res, next);
+  },
   accessTokenAutoRefresh,
   setAuthHeader
 ];

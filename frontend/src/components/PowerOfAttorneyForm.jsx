@@ -4,9 +4,15 @@ import { toast } from "react-toastify";
 import CameraCapture from "./CameraCapture";
 import LanguageSelector from "./LanguageSelector";
 import { useTranslation } from "../hooks/useTranslation";
+import { FormWorkflowProvider, useFormWorkflow } from './FormWorkflow/FormWorkflowProvider';
+import FormWorkflow from './FormWorkflow/FormWorkflow';
+import FormPreview from './FormWorkflow/FormPreview';
+import ProcessingState from './FormWorkflow/ProcessingState';
+import PaymentGateway from './FormWorkflow/PaymentGateway';
 
-const PowerOfAttorneyForm = () => {
+const PowerOfAttorneyFormContent = () => {
   const { t } = useTranslation();
+  const { goToPreview } = useFormWorkflow();
   const [currentLang, setCurrentLang] = useState('hi');
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -457,50 +463,14 @@ const PowerOfAttorneyForm = () => {
       return;
     }
     
-    setIsLoading(true);
-
-    try {
-      const formDataToSend = new FormData();
-      
-      // Add all form data
-      Object.keys(formData).forEach(key => {
-        if (key.includes('Parties') || key === 'properties') {
-          formDataToSend.append(key, JSON.stringify(formData[key]));
-        } else {
-          formDataToSend.append(key, formData[key]);
-        }
-      });
-
-      // Add files
-      [...formData.kartaParties, ...formData.agentParties, ...formData.witnessParties].forEach((party, partyIndex) => {
-        if (party.idPhoto) {
-          formDataToSend.append(`party_${partyIndex}_idPhoto`, party.idPhoto);
-        }
-        if (party.photo) {
-          formDataToSend.append(`party_${partyIndex}_photo`, party.photo);
-        }
-      });
-
-      const response = await fetch('/api/power-of-attorney/create', {
-        method: 'POST',
-        body: formDataToSend,
-        credentials: 'include'
-      });
-
-      const result = await response.json();
-
-      if (result.status === 'success') {
-        toast.success('Power of Attorney form submitted successfully!');
-        // Reset form or redirect
-      } else {
-        toast.error(result.message || 'Failed to submit form');
-      }
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error('An error occurred while submitting the form');
-    } finally {
-      setIsLoading(false);
-    }
+    // Instead of submitting directly, go to preview
+    const dataToSave = {
+      ...formData,
+      amount: 1200, // Base amount for power of attorney
+      formType: 'power-of-attorney'
+    };
+    
+    goToPreview(dataToSave);
   };
 
   const renderPartySection = (type, parties, sectionNumber) => (
@@ -1196,6 +1166,26 @@ const PowerOfAttorneyForm = () => {
         </div>
         </div>
       </div>
+  );
+};
+
+const PowerOfAttorneyForm = () => {
+  return (
+    <FormWorkflowProvider formType="power-of-attorney">
+      <FormWorkflow 
+        formTitle="Power of Attorney"
+        formType="power-of-attorney"
+        fields={[
+          { name: 'executionDate', label: 'Execution Date' },
+          { name: 'state', label: 'State' },
+          { name: 'district', label: 'District' },
+          { name: 'tehsil', label: 'Tehsil' },
+          { name: 'subRegistrarOffice', label: 'Sub Registrar Office' },
+        ]}
+      >
+        <PowerOfAttorneyFormContent />
+      </FormWorkflow>
+    </FormWorkflowProvider>
   );
 };
 

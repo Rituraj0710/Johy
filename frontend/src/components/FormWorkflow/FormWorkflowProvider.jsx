@@ -96,13 +96,19 @@ export const FormWorkflowProvider = ({ children, formType }) => {
           }
           break;
         case 'power-of-attorney':
-          if (!data.principal || !data.agent) {
-            throw new Error('Principal and agent information are required');
+          if (!data.kartaParties || data.kartaParties.length === 0) {
+            throw new Error('At least one principal (Karta) is required');
+          }
+          if (!data.agentParties || data.agentParties.length === 0) {
+            throw new Error('At least one agent is required');
           }
           break;
         case 'adoption-deed':
-          if (!data.adoptiveParents || !data.childInfo) {
-            throw new Error('Adoptive parents and child information are required');
+          if (!data.firstParties || data.firstParties.length === 0) {
+            throw new Error('At least one first party is required');
+          }
+          if (!data.childName) {
+            throw new Error('Child name is required');
           }
           break;
       }

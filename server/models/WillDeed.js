@@ -237,14 +237,14 @@ willDeedSchema.pre('save', function (next) {
 
   // Check immovable property assignments
   for (let prop of this.immovables || []) {
-    if (prop.assignedTo && !beneficiaryNames.includes(prop.assignedTo)) {
+    if (prop.assignedTo && !beneficiaryNames.some(name => prop.assignedTo.includes(name) || name.includes(prop.assignedTo))) {
       return next(new Error(`Invalid beneficiary assignment for immovable property: ${prop.assignedTo}`));
     }
   }
 
   // Check movable property assignments
   for (let prop of this.movables || []) {
-    if (prop.assignedTo && !beneficiaryNames.includes(prop.assignedTo)) {
+    if (prop.assignedTo && !beneficiaryNames.some(name => prop.assignedTo.includes(name) || name.includes(prop.assignedTo))) {
       return next(new Error(`Invalid beneficiary assignment for movable property: ${prop.assignedTo}`));
     }
   }

@@ -1,9 +1,9 @@
 "use client"
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useLogoutAgentMutation } from "@/lib/services/auth";
+import { useLogoutStaffMutation } from "@/lib/services/auth";
 const AgentSidebar = () =>{
-  const [logoutUser] = useLogoutAgentMutation();
+  const [logoutUser] = useLogoutStaffMutation();
   const  router  = useRouter();
   const handleLogout = async () => {
     try {

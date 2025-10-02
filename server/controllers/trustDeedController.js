@@ -1,6 +1,7 @@
 import TrustDeed from "../models/TrustDeed.js";
 import logger from "../config/logger.js";
 import DOMPurify from 'isomorphic-dompurify';
+import crypto from 'crypto';
 
 // Input sanitization function
 const sanitizeInput = (input) => {
@@ -490,7 +491,6 @@ class TrustDeedController {
       };
 
       // Generate hash
-      const crypto = require('crypto');
       const hashString = `${payuConfig.key}|${payuConfig.txnid}|${payuConfig.amount}|${payuConfig.productinfo}|${payuConfig.firstname}|${payuConfig.email}|||||||||||${payuConfig.salt}`;
       const hash = crypto.createHash('sha512').update(hashString).digest('hex');
 

@@ -520,12 +520,20 @@ const Navbar = () => {
               <div className="flex items-center space-x-4">
                 {isAuth ? (
                   <>
-                    {role === "user" ? (
+                    {role === "normal_user" ? (
                       <Link href="/user/profile" className="text-slate-200 hover:text-amber-400 mr-4 transition-colors duration-300">
                         <Avatar />
                       </Link>
-                    ) : (
+                    ) : role === 'agent_user' ? (
                       <Link href="/agent/agent-profile" className="text-slate-200 hover:text-amber-400 mr-4 transition-colors duration-300">
+                        <AgentAvatar />
+                      </Link>
+                    ) : role === 'admin' ? (
+                      <Link href="/admin/dashboard" className="text-slate-200 hover:text-amber-400 mr-4 transition-colors duration-300">
+                        <AgentAvatar />
+                      </Link>
+                    ) : (
+                      <Link href="/staff/staff-profile" className="text-slate-200 hover:text-amber-400 mr-4 transition-colors duration-300">
                         <AgentAvatar />
                       </Link>
                     )}
@@ -546,23 +554,22 @@ const Navbar = () => {
                         tabIndex={0}
                         className="dropdown-content menu bg-slate-800 border border-slate-600 rounded-lg z-[1] gap-2 p-3 shadow-xl w-28"
                       >
-                        <Link href="/account/user-login">
-                          <li>
-                            <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-300 w-full">
-                              Login
-                            </button>
-                          </li>
-                        </Link>
-                        <Link href="/account/user-register">
-                          <li>
-                            <button className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-300 w-full">
-                              Signup
-                            </button>
-                          </li>
-                        </Link>
+                         <Link href="/user/login">
+                           <li>
+                             <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-300 w-full">
+                               Login
+                             </button>
+                           </li>
+                         </Link>
+                         <Link href="/user/register">
+                           <li>
+                             <button className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-300 w-full">
+                               Signup
+                             </button>
+                           </li>
+                         </Link>
                       </ul>
                     </div>
-                    
                     <div className="dropdown dropdown-hover">
                       <div tabIndex={0} role="button" className="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg font-medium transition-all duration-300 border border-slate-600 hover:border-amber-400 text-sm md:text-base">
                         Agent
@@ -571,20 +578,20 @@ const Navbar = () => {
                         tabIndex={0}
                         className="dropdown-content menu bg-slate-800 border border-slate-600 rounded-lg z-[1] gap-2 p-3 shadow-xl w-28"
                       >
-                        <Link href="/account/agent-login">
-                          <li>
-                            <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-300 w-full">
-                              Login
-                            </button>
-                          </li>
-                        </Link>
-                        <Link href="/account/agent-register">
-                          <li>
-                            <button className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-300 w-full">
-                              Signup
-                            </button>
-                          </li>
-                        </Link>
+                         <Link href="/agent/login">
+                           <li>
+                             <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-300 w-full">
+                               Login
+                             </button>
+                           </li>
+                         </Link>
+                         <Link href="/agent/register">
+                           <li>
+                             <button className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-medium transition-colors duration-300 w-full">
+                               Signup
+                             </button>
+                           </li>
+                         </Link>
                       </ul>
                     </div>
                   </>

@@ -5,21 +5,49 @@ import { getApiBaseUrl } from "../utils/env.js";
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({ 
-    baseUrl: `${getApiBaseUrl()}/api/user/`,
+    baseUrl: `${getApiBaseUrl()}/api/auth/`,
     prepareHeaders: (headers) => {
       if (typeof window !== 'undefined'){
         const token = localStorage.getItem('access_token');
         if (token) headers.set('authorization', `Bearer ${token}`);
       }
       return headers;
+    },
+    fetchFn: async (input, init) => {
+      console.log('RTK Query: Making request to:', input);
+      console.log('RTK Query: Request init:', init);
+      
+      try {
+        const response = await fetch(input, init);
+        console.log('RTK Query: Response received:', {
+          status: response.status,
+          ok: response.ok,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.log('RTK Query: Error response body:', errorText);
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        
+        return response;
+      } catch (error) {
+        console.error('RTK Query: Fetch failed:', error);
+        throw error;
+      }
     }
   }),
   endpoints: (builder) => ({
     createUser: builder.mutation({
       query: (user) => {
-        // console.log("create user data-", user);
+        const baseUrl = getApiBaseUrl();
+        const fullUrl = `${baseUrl}/api/auth/user/signup`;
+        console.log("API: Creating user with data:", user);
+        console.log("API: Base URL:", baseUrl);
+        console.log("API: Full URL:", fullUrl);
         return {
-          url: "register",
+          url: "user/signup",
           method: "POST",
           body: user,
           headers: {
@@ -129,32 +157,19 @@ export const authApi = createApi({
 //   useContactUsMutation,
 // } = authApi;
 
-// Define a service for agent using a base URL and expected endpoints
-export const agentApi = createApi({
-  reducerPath: "agentApi",
+// Define a service for staff using a base URL and expected endpoints
+export const staffApi = createApi({
+  reducerPath: "staffApi",
   baseQuery: fetchBaseQuery({ 
-    baseUrl: `${getApiBaseUrl()}/api/agent/`,
+    baseUrl: `${getApiBaseUrl()}/api/staff/`,
     credentials: 'include'
   }),
   endpoints: (builder) => ({
-    createAgent: builder.mutation({
-      query: (user) => {
-        // console.log("create user data-", user);
-        return {
-          url: "agent-register",
-          method: "POST",
-          body: user,
-          headers: {
-            "Content-type": "application/json",
-          },
-        };
-      },
-    }),
-    verifyAgentEmail: builder.mutation({
+    verifyStaffEmail: builder.mutation({
       query: (user) => {
         // console.log("otp",user);
         return {
-          url: `agent-verify-email`,
+          url: `staff-verify-email`,
           method: "POST",
           body: user,
           headers: {
@@ -163,10 +178,10 @@ export const agentApi = createApi({
         };
       },
     }),
-    loginAgent: builder.mutation({
+    loginStaff: builder.mutation({
       query: (user) => {
         return {
-          url: "agent-login",
+          url: "staff-login",
           method: "POST",
           body: user,
           headers: {
@@ -176,26 +191,26 @@ export const agentApi = createApi({
         };
       },
     }),
-    getAgent: builder.query({
+    getStaff: builder.query({
       query: () => {
         return {
-          url: "agent-profile",
+          url: "staff-profile",
           method: "GET",
           credentials: "include",
         };
       },
     }),
-    logoutAgent: builder.mutation({
+    logoutStaff: builder.mutation({
       query: () => {
         return {
-          url: "agent-logout",
+          url: "staff-logout",
           method: "POST",
           body: {},
           credentials: "include",
         };
       },
     }),
-    resetAgentPasswordLink: builder.mutation({
+    resetStaffPasswordLink: builder.mutation({
       query: (user) => {
         return {
           url: "reset-password-link",
@@ -207,7 +222,7 @@ export const agentApi = createApi({
         };
       },
     }),
-    resetAgentPassword: builder.mutation({
+    resetStaffPassword: builder.mutation({
       query: (data) => {
         const { id, token, ...values } = data;
         const actualData = { ...values };
@@ -221,10 +236,10 @@ export const agentApi = createApi({
         };
       },
     }),
-    changeAgentPassword: builder.mutation({
+    changeStaffPassword: builder.mutation({
       query: (actualData) => {
         return {
-          url: `agent-change-password`,
+          url: `staff-change-password`,
           method: "POST",
           body: actualData,
           credentials: "include",
@@ -247,14 +262,13 @@ export const {
   useContactUsMutation,
 } = authApi;
 
-// Export agent API hooks
+// Export staff API hooks
 export const {
-  useCreateAgentMutation,
-  useVerifyAgentEmailMutation,
-  useLoginAgentMutation,
-  useGetAgentQuery,
-  useLogoutAgentMutation,
-  useResetAgentPasswordLinkMutation,
-  useResetAgentPasswordMutation,
-  useChangeAgentPasswordMutation,
-} = agentApi;
+  useVerifyStaffEmailMutation,
+  useLoginStaffMutation,
+  useGetStaffQuery,
+  useLogoutStaffMutation,
+  useResetStaffPasswordLinkMutation,
+  useResetStaffPasswordMutation,
+  useChangeStaffPasswordMutation,
+} = staffApi;

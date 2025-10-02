@@ -5,9 +5,15 @@ import CameraCapture from "./CameraCapture";
 import LanguageSelectorDropdown from "./LanguageSelectorDropdown";
 import ClientOnly from "./ClientOnly";
 import { useTranslation } from "react-i18next";
+import { FormWorkflowProvider, useFormWorkflow } from './FormWorkflow/FormWorkflowProvider';
+import FormWorkflow from './FormWorkflow/FormWorkflow';
+import FormPreview from './FormWorkflow/FormPreview';
+import ProcessingState from './FormWorkflow/ProcessingState';
+import PaymentGateway from './FormWorkflow/PaymentGateway';
 
-const AdoptionDeedForm = () => {
+const AdoptionDeedFormContent = () => {
   const { t } = useTranslation();
+  const { goToPreview } = useFormWorkflow();
   
   // Form state
   const [formData, setFormData] = useState({
@@ -353,48 +359,18 @@ const AdoptionDeedForm = () => {
       return;
     }
 
-    setIsLoading(true);
-    try {
-      const dataToSave = {
-        ...formData,
-        firstParties,
-        secondParties,
-        witnesses,
-        gifts,
-        formType: 'adoption-deed'
-      };
-
-      // Create FormData for file uploads
-      const formDataToSend = new FormData();
-      formDataToSend.append('data', JSON.stringify(dataToSave));
-
-      // Add uploaded files
-      uploadedFiles.forEach((fileObj, index) => {
-        formDataToSend.append(`file_${index}`, fileObj.file);
-      });
-
-      // Submit to backend
-      const API_BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:4001';
-      const response = await fetch(`${API_BASE}/api/adoption-deed`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formDataToSend,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Request failed (${response.status})`);
-      }
-
-      const result = await response.json();
-      toast.success("Adoption Deed form submitted successfully!");
-      console.log('Form submitted:', result);
-      
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.error("Failed to submit form. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
+    // Instead of submitting directly, go to preview
+    const dataToSave = {
+      ...formData,
+      firstParties,
+      secondParties,
+      witnesses,
+      gifts,
+      amount: 1000, // Base amount for adoption deed
+      formType: 'adoption-deed'
+    };
+    
+    goToPreview(dataToSave);
   };
 
   return (
@@ -1608,6 +1584,27 @@ const AdoptionDeedForm = () => {
         </div>
         </div>
       </div>
+  );
+};
+
+const AdoptionDeedForm = () => {
+  return (
+    <FormWorkflowProvider formType="adoption-deed">
+      <FormWorkflow 
+        formTitle="Adoption Deed"
+        formType="adoption-deed"
+        fields={[
+          { name: 'childName', label: 'Child Name' },
+          { name: 'childDOB', label: 'Child Date of Birth' },
+          { name: 'childGender', label: 'Child Gender' },
+          { name: 'country', label: 'Country' },
+          { name: 'state', label: 'State' },
+          { name: 'district', label: 'District' },
+        ]}
+      >
+        <AdoptionDeedFormContent />
+      </FormWorkflow>
+    </FormWorkflowProvider>
   );
 };
 

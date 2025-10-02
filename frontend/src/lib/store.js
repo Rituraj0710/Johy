@@ -1,14 +1,16 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { setupListeners } from '@reduxjs/toolkit/query'
-import { authApi } from './services/auth';
-import { agentApi } from './services/auth';
+import { authApi, staffApi } from './services/auth';
+import { otpAuthApi } from './services/otpAuth';
+
 export const store = configureStore({
   reducer: {
     [authApi.reducerPath]: authApi.reducer,
-    [agentApi.reducerPath]: agentApi.reducer,
+    [staffApi.reducerPath]: staffApi.reducer,
+    [otpAuthApi.reducerPath]: otpAuthApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(authApi.middleware, agentApi.middleware), 
+    getDefaultMiddleware().concat(authApi.middleware, staffApi.middleware, otpAuthApi.middleware), 
 })
 
 setupListeners(store.dispatch);

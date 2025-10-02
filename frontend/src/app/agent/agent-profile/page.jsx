@@ -1,10 +1,10 @@
 "use client"
-import { useGetAgentQuery } from "@/lib/services/auth";
+import { useGetStaffQuery } from "@/lib/services/auth";
 import { useState, useEffect } from "react";
 
 const Profile = () => {
   const [user, setUser] = useState({});
-  const {data, isSuccess} = useGetAgentQuery();
+  const {data, isSuccess} = useGetStaffQuery();
   useEffect(() => {
     if (data && isSuccess) {
       setUser(data.user);

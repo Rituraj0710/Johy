@@ -1,82 +1,51 @@
 {
-  "form": {
-    "title": "Form",
+  "common": {
     "submit": "Submit",
-    "reset": "Reset",
-    "save": "Save",
     "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "back": "Back",
     "next": "Next",
     "previous": "Previous",
-    "required": "Required",
-    "optional": "Optional"
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information"
   },
-  "trustDeed": {
-    "title": "Trust Deed Form",
-    "trustDetails": "Trust Details",
-    "trustName": "Trust Name",
-    "trustAddress": "Trust Address",
-    "startingAmount": "Starting Amount",
-    "amountInNumbers": "Amount (in numbers)",
-    "amountInWords": "Amount (in words)",
-    "trustees": "Trustee/Member Details",
-    "functionalDomains": "Trust's Functional Areas",
-    "purposes": "Trust's Objectives",
-    "terms": "Important Rules and Terms",
-    "witnesses": "Witness Details",
-    "addTrustee": "Add Trustee/Member",
-    "addDomain": "Add More Areas",
-    "addPurpose": "Add More Objectives",
-    "addTerm": "Add More Points",
-    "remove": "Remove",
-    "salutation": "Mr./Mrs.",
-    "position": "Position",
+  "auth": {
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
     "name": "Name",
-    "relation": "Father/Husband Name",
-    "address": "Address",
-    "mobile": "Mobile Number",
-    "idType": "ID Type",
-    "idNumber": "ID Number",
-    "idCard": "ID Card Upload",
-    "photo": "Photo Upload"
+    "phone": "Phone",
+    "forgotPassword": "Forgot Password?",
+    "resetPassword": "Reset Password"
   },
-  "saleDeed": {
-    "title": "Sale Deed Form",
-    "propertyDetails": "Property Details",
-    "sellers": "Seller Details",
-    "buyers": "Buyer Details",
-    "addSeller": "Add Seller",
-    "addBuyer": "Add Buyer"
+  "dashboard": {
+    "welcome": "Welcome",
+    "userDashboard": "User Dashboard",
+    "agentDashboard": "Agent Dashboard",
+    "staffDashboard": "Staff Dashboard",
+    "adminDashboard": "Admin Dashboard"
   },
-  "willDeed": {
-    "title": "Will Deed Form",
-    "testatorDetails": "Testator Details",
-    "beneficiaries": "Beneficiary Details",
-    "addBeneficiary": "Add Beneficiary"
+  "forms": {
+    "saleDeed": "Sale Deed",
+    "willDeed": "Will Deed",
+    "trustDeed": "Trust Deed",
+    "propertyRegistration": "Property Registration",
+    "powerOfAttorney": "Power of Attorney",
+    "adoptionDeed": "Adoption Deed"
   },
-  "propertyRegistration": {
-    "title": "Property Registration Form",
-    "propertyInfo": "Property Information",
-    "ownerDetails": "Owner Details"
-  },
-  "powerOfAttorney": {
-    "title": "Power of Attorney Form",
-    "principalDetails": "Principal Details",
-    "agentDetails": "Agent Details"
-  },
-  "adoptionDeed": {
-    "title": "Adoption Deed Form",
-    "adoptiveParents": "Adoptive Parents",
-    "childDetails": "Child Details"
-  },
-  "common": {
-    "select": "Select",
-    "enter": "Enter",
-    "upload": "Upload",
-    "choose": "Choose",
-    "yes": "Yes",
-    "no": "No",
-    "male": "Male",
-    "female": "Female",
-    "other": "Other"
+  "staff": {
+    "staff1": "Form & Stamp Verification",
+    "staff2": "Trustee Details Verification",
+    "staff3": "Plot/Land Details Verification",
+    "staff4": "Review Approvals",
+    "staff5": "Final Cross-Check & Lock"
   }
 }

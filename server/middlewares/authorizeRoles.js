@@ -8,7 +8,7 @@ import passport from "passport";
 const authorizeRoles = (...allowedRoles) => {
   return [
     // First authenticate the user using JWT
-    passport.authenticate('jwt', { session: false }),
+    passport.authenticate('userOrStaff', { session: false }),
     
     // Then check if user has required role
     (req, res, next) => {
@@ -21,16 +21,16 @@ const authorizeRoles = (...allowedRoles) => {
           });
         }
 
-        // Get user roles
-        const userRoles = req.user.roles || [];
+        // Get user role (single role field)
+        const userRole = req.user.role;
         
         // Check if user has any of the allowed roles
-        const hasRequiredRole = allowedRoles.some(role => userRoles.includes(role));
+        const hasRequiredRole = allowedRoles.includes(userRole);
         
         if (!hasRequiredRole) {
           return res.status(403).json({
             status: 'fail',
-            message: `Access denied. Required roles: ${allowedRoles.join(', ')}. Your roles: ${userRoles.join(', ')}`
+            message: `Access denied. Required roles: ${allowedRoles.join(', ')}. Your role: ${userRole}`
           });
         }
 
@@ -54,7 +54,7 @@ const authorizeRoles = (...allowedRoles) => {
  */
 const authorizeRolePattern = (rolePattern) => {
   return [
-    passport.authenticate('jwt', { session: false }),
+    passport.authenticate('userOrStaff', { session: false }),
     
     (req, res, next) => {
       try {
@@ -65,33 +65,29 @@ const authorizeRolePattern = (rolePattern) => {
           });
         }
 
-        const userRoles = req.user.roles || [];
+        const userRole = req.user.role;
         
         // Check for pattern matching
         let hasRequiredRole = false;
         
         if (rolePattern === 'staff_*') {
           // Match all staff roles
-          hasRequiredRole = userRoles.some(role => 
-            role.startsWith('staff_') || role === 'admin'
-          );
+          hasRequiredRole = userRole.startsWith('staff') || userRole === 'admin';
         } else if (rolePattern === 'admin') {
           // Only admin
-          hasRequiredRole = userRoles.includes('admin');
+          hasRequiredRole = userRole === 'admin';
         } else if (rolePattern === 'user_or_staff') {
           // User or any staff role
-          hasRequiredRole = userRoles.some(role => 
-            role === 'user' || role.startsWith('staff_') || role === 'admin'
-          );
+          hasRequiredRole = userRole === 'user1' || userRole === 'user2' || userRole.startsWith('staff') || userRole === 'admin';
         } else {
           // Exact role match
-          hasRequiredRole = userRoles.includes(rolePattern);
+          hasRequiredRole = userRole === rolePattern;
         }
         
         if (!hasRequiredRole) {
           return res.status(403).json({
             status: 'fail',
-            message: `Access denied. Required: ${rolePattern}. Your roles: ${userRoles.join(', ')}`
+            message: `Access denied. Required: ${rolePattern}. Your role: ${userRole}`
           });
         }
 

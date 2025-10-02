@@ -2,7 +2,7 @@
 import { useFormik } from 'formik'
 import { useParams } from 'next/navigation'
 import {changePasswordSchema} from "@/validations/schemas"
-import { useChangeAgentPasswordMutation } from '@/lib/services/auth';
+import { useChangeStaffPasswordMutation } from '@/lib/services/auth';
 import { useState } from 'react';
 
 const initialValues = {
@@ -13,7 +13,7 @@ const ResetPasswordConfirm = () => {
     const [loading, setLoading] = useState(false);
     const [serverErrorMessage, setServerErrorMessage] = useState('');
     const [serverSuccessMessage, setServerSuccessMessage] = useState('');
-    const [changePassword] = useChangeAgentPasswordMutation()
+    const [changePassword] = useChangeStaffPasswordMutation()
  const {values,errors, handleChange, handleSubmit} = useFormik({
     initialValues,
     validationSchema: changePasswordSchema,

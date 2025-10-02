@@ -1,67 +1,15 @@
-// import express, { json } from "express";
-// import cors from "cors";
-// import cookieParser from "cookie-parser";
-// import connectDB from "./config/connectdb.js";
-// import passport from "passport";
-// // routes
-// import userRoutes from "./routes/userRoutes.js";
-// import agentRoutes from "./routes/agentRoutes.js";
-// import willDeedRoutes from "./routes/willDeedRoutes.js";
-// import saleDeedRoutes from "./routes/saleDeedRoutes.js";
-// import trustDeedRoutes from "./routes/trustDeedRoutes.js";
-// import propertyRegistrationRoutes from "./routes/propertyRegistrationRoutes.js";
-// import propertySaleCertificateRoutes from "./routes/propertySaleCertificateRoutes.js";
-// import dotenv from "dotenv"; 
-// import './config/passport-jwt-strategy.js'
-// dotenv.config()
 
-// const app = express();
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
-// const port = process.env.PORT || 4001;
-// const DATABASE_URL = process.env.DATABASE_URL;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// // cors policy
-// const allowedOrigin = process.env.FRONTEND_HOST || 'http://localhost:3000';
-// app.use(cors({
-//   origin: allowedOrigin,
-//   credentials: true,
-// }));
+dotenv.config({ path: path.join(__dirname, '.env') });
 
-// // database connection 
-// connectDB(DATABASE_URL);
-
-// // JSON
-// app.use(express.json());
-
-// // Passport Middleware
-// app.use(passport.initialize());
-
-// // cookieParser 
-// app.use(cookieParser());
-
-// // Load Routes
-// app.use("/api/user", userRoutes);
-// app.use("/api/agent", agentRoutes);
-// app.use("/api/will-deed", willDeedRoutes);
-// app.use("/api/sale-deed", saleDeedRoutes);
-// app.use("/api/trust-deed", trustDeedRoutes);
-// app.use("/api/property-registration", propertyRegistrationRoutes);
-// app.use("/api/property-sale-certificate", propertySaleCertificateRoutes);
-
-// // Static for uploads
-// import path from "path";
-// import fs from "fs";
-// const uploadsPath = path.join(process.cwd(), "uploads");
-// if(!fs.existsSync(uploadsPath)) fs.mkdirSync(uploadsPath, { recursive: true });
-// app.use("/uploads", express.static(uploadsPath));
-
-
-
-// // app.use("/api", userRoutes);
-
-// app.listen(port, () => {
-//   console.log(`Server is running ${port}`);
-// })
+// Import passport strategy after dotenv is configured
+import './config/passport-jwt-strategy.js';
 
 import express, { json } from "express";
 import cors from "cors";
@@ -74,7 +22,7 @@ import logger from "./config/logger.js";
 import { generalLimiter } from "./config/rateLimits.js";
 // routes
 import userRoutes from "./routes/userRoutes.js";
-import agentRoutes from "./routes/agentRoutes.js";
+import staffRoutes from "./routes/staffRoutes.js";
 import willDeedRoutes from "./routes/willDeedRoutes.js";
 import saleDeedRoutes from "./routes/saleDeedRoutes.js";
 import trustDeedRoutes from "./routes/trustDeedRoutes.js";
@@ -82,28 +30,38 @@ import propertyRegistrationRoutes from "./routes/propertyRegistrationRoutes.js";
 import propertySaleCertificateRoutes from "./routes/propertySaleCertificateRoutes.js";
 import powerOfAttorneyRoutes from "./routes/powerOfAttorneyRoutes.js";
 import adoptionDeedRoutes from "./routes/adoptionDeedRoutes.js";
+import formsDataRoutes from "./routes/formsDataRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
 import healthRoutes from "./routes/healthRoutes.js";
+// RBAC Routes
+import authRoutes from "./routes/authRoutes.js";
+import rbacRoutes from "./routes/rbacRoutes.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import requestLogger from "./middlewares/requestLogger.js";
 import validateRequest from "./middlewares/validateRequest.js";
 // Staff and Admin Routes
 import adminRoutes from "./routes/adminRoutes.js";
+import roleRoutes from "./routes/roleRoutes.js";
+import logsRoutes from "./routes/logsRoutes.js";
+// OTP Authentication Routes
+import otpAuthRoutes from "./routes/otpAuthRoutes.js";
+// Signup Routes
+import userSignupRoutes from "./routes/userSignupRoutes.js";
+import agentSignupRoutes from "./routes/agentSignupRoutes.js";
+// Agent Approval Routes
+import agentApprovalRoutes from "./routes/agentApprovalRoutes.js";
+import agentManagementRoutes from "./routes/agentManagementRoutes.js";
 import staff1Routes from "./routes/staff1Routes.js";
 import staff2Routes from "./routes/staff2Routes.js";
 import staff3Routes from "./routes/staff3Routes.js";
 import staff4Routes from "./routes/staff4Routes.js";
 import staff5Routes from "./routes/staff5Routes.js";
-import staff6Routes from "./routes/staff6Routes.js";
-import staff7Routes from "./routes/staff7Routes.js";
-import dotenv from "dotenv";
-import './config/passport-jwt-strategy.js'
-dotenv.config()
+import staffReportRoutes from "./routes/staffReportRoutes.js";
 
 const app = express();
 
 const port = process.env.PORT || 4001;
-const DATABASE_URL = process.env.DATABASE_URL;
+const DATABASE_URL = process.env.MONGODB_URI || process.env.DATABASE_URL || 'mongodb://localhost:27017/document_management';
 
 // Security middleware - Helmet for security headers
 app.use(helmet({
@@ -118,10 +76,9 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false, // Disable for file uploads
 }));
 
-// CORS policy
-const allowedOrigin = process.env.FRONTEND_HOST || 'http://localhost:3000';
+// CORS policy - Allow all origins for development
 app.use(cors({
-  origin: allowedOrigin,
+  origin: true, // Allow all origins in development
   credentials: true,
 }));
 
@@ -153,7 +110,7 @@ app.get("/api/payment/test", (req, res) => {
 app.use("/api/health", healthRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/user", userRoutes);
-app.use("/api/agent", agentRoutes);
+app.use("/api/staff", staffRoutes);
 app.use("/api/will-deed", willDeedRoutes);
 app.use("/api/sale-deed", saleDeedRoutes);
 app.use("/api/trust-deed", trustDeedRoutes);
@@ -161,19 +118,35 @@ app.use("/api/property-registration", propertyRegistrationRoutes);
 app.use("/api/property-sale-certificate", propertySaleCertificateRoutes);
 app.use("/api/power-of-attorney", powerOfAttorneyRoutes);
 app.use("/api/adoption-deed", adoptionDeedRoutes);
+app.use("/api/forms", formsDataRoutes);
 
-// Admin and Staff Routes
+// RBAC Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/rbac", rbacRoutes);
+
+// OTP Authentication Routes
+app.use("/api/auth", otpAuthRoutes);
+
+// Signup Routes
+app.use("/api/user", userSignupRoutes);
+app.use("/api/agent", agentSignupRoutes);
+
+// Agent Approval Routes
+app.use("/api/admin/agent-approval", agentApprovalRoutes);
+app.use("/api/admin/agent-management", agentManagementRoutes);
+
+// Admin Routes
 app.use("/api/admin", adminRoutes);
+app.use("/api/roles", roleRoutes);
+app.use("/api/logs", logsRoutes);
 app.use("/api/staff/1", staff1Routes);
 app.use("/api/staff/2", staff2Routes);
 app.use("/api/staff/3", staff3Routes);
 app.use("/api/staff/4", staff4Routes);
 app.use("/api/staff/5", staff5Routes);
-app.use("/api/staff/6", staff6Routes);
-app.use("/api/staff/7", staff7Routes);
+app.use("/api/staff-reports", staffReportRoutes);
 
 // Static for uploads
-import path from "path";
 import fs from "fs";
 const uploadsPath = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadsPath)) fs.mkdirSync(uploadsPath, { recursive: true });
@@ -204,10 +177,10 @@ app.use('/api', (req, res) => {
 app.listen(port, () => {
   logger.info(`Server is running on port ${port}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  logger.info(`Frontend host: ${allowedOrigin}`);
+  logger.info(`CORS: All origins allowed for development`);
   console.log(`Server is running on port ${port}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Frontend host: ${allowedOrigin}`);
+  console.log(`CORS: All origins allowed for development`);
 });
 
 export default app;

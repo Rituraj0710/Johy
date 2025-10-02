@@ -22,6 +22,11 @@ export default async function HomePage({ params }) {
                     {"Explore our services and make your life easier."}
                   </p>
                   <div className="flex justify-center md:justify-start space-x-4">
+                    <Link href="/user">
+                      <button className="bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-green-700 transition">
+                        {"User Login"}
+                      </button>
+                    </Link>
                     <Link href="/about">
                       <button className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-blue-700 transition">
                         {"Learn More"}
